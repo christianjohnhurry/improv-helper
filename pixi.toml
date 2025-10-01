@@ -1,0 +1,12 @@
+[workspace]
+channels = ["conda-forge"]
+name = "improv-helper"
+platforms = ["osx-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+numpy = ">=2.3.3,<3"
+pandas = ">=2.3.3,<3"
+networkx = ">=3.5,<4"
