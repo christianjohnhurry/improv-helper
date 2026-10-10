@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import plotly.graph_objects as go
 
 from flower.analysis import SceneNode, ShowAnalysis, analyse
@@ -13,6 +14,11 @@ TAG_COLORS = {"single": "#8ecae6", "double": "#ffb703"}
 LEGEND = [("Opening / base", NEUTRAL_COLOR), *((t.capitalize(), c) for t, c in TAG_COLORS.items())]
 SUNBURST_DOMAIN = [0.0, 0.68]
 CARD_X = 0.72
+START_ROTATION = 90  # puts the first sector at 12 o'clock (Plotly's default is 3 o'clock)
+ARROW_COLOR = "#555555"
+ARROW_RADIUS = 0.85  # of the centre circle's radius
+ARROW_SWEEP = 330  # degrees, clockwise from 12 o'clock; the gap shows start and end apart
+ARROW_STEPS = 60
 
 
 def node_id(node: SceneNode) -> str:
@@ -56,6 +62,39 @@ def sunburst_rows(analysis: ShowAnalysis, title: str) -> list[dict]:
             )
         )
     return rows
+
+
+def reading_arrow(max_depth: int) -> list[go.Scatter]:
+    """Traces for a clockwise arrow around the centre: a dot at the start, an arrowhead at the end.
+
+    Drawn on square axes spanning [-1, 1] across the sunburst, whose rings are
+    equally thick, so the centre circle's radius is 1 / (max_depth + 2).
+
+    Args:
+        max_depth: Deepest scene level in the show.
+
+    Returns:
+        The arc line, its start dot and its arrowhead.
+    """
+    radius = ARROW_RADIUS / (max_depth + 2)
+    angles = np.radians(90 - np.linspace(0, ARROW_SWEEP, ARROW_STEPS))  # clockwise from the top
+    x, y = radius * np.cos(angles), radius * np.sin(angles)
+    common = dict(hoverinfo="skip", showlegend=False)
+    return [
+        go.Scatter(x=x, y=y, mode="lines", line=dict(color=ARROW_COLOR, width=2), **common),
+        go.Scatter(
+            x=x[:1], y=y[:1], mode="markers",
+            marker=dict(color=ARROW_COLOR, size=7, symbol="circle"), **common,
+        ),
+        go.Scatter(
+            x=x[-2:], y=y[-2:], mode="markers",
+            marker=dict(
+                color=ARROW_COLOR, size=11, symbol="arrow", angleref="previous",
+                line=dict(width=0),
+            ),
+            **common,
+        ),
+    ]
 
 
 def stats_card_text(analysis: ShowAnalysis) -> str:
@@ -118,10 +157,12 @@ def sunburst_chart(table: SceneTable) -> go.Figure:
                 "<extra></extra>"
             ),
             sort=False,
-            rotation=0,
+            rotation=START_ROTATION,
             domain=dict(x=SUNBURST_DOMAIN),
         )
     )
+    for arrow_trace in reading_arrow(analysis.stats.max_depth):
+        fig.add_trace(arrow_trace)
     # Sunbursts have no legend, so add empty scatter traces to carry the entries.
     for name, color in LEGEND:
         fig.add_trace(
@@ -137,8 +178,8 @@ def sunburst_chart(table: SceneTable) -> go.Figure:
     )
     fig.update_layout(
         title=title,
-        xaxis=dict(visible=False),
-        yaxis=dict(visible=False),
+        xaxis=dict(visible=False, domain=SUNBURST_DOMAIN, range=[-1, 1]),
+        yaxis=dict(visible=False, range=[-1, 1], scaleanchor="x"),
         legend=dict(x=CARD_X, y=0.05, xanchor="left", yanchor="bottom"),
         margin=dict(l=20, r=20, t=60, b=20),
     )

@@ -68,7 +68,7 @@ def test_hover_fields():
 
 def test_legend_and_stats_card():
     fig = sunburst_chart(scamps())
-    assert [t.name for t in fig.data[1:]] == ["Opening / base", "Single", "Double"]
+    assert [t.name for t in fig.data[4:]] == ["Opening / base", "Single", "Double"]
     card = fig.layout.annotations[0].text
     for label in ("Total time", "Runs", "Max depth", "At base", "Mean scene",
                   "Longest scene", "Single tags", "Double tags"):
@@ -102,3 +102,13 @@ def test_cli_errors(tmp_path, capsys):
     SceneTable(scenes=[Scene("Opening", 0, 0, "")]).save_json(short)
     assert main([str(short)]) == 1
     assert capsys.readouterr().err.count("error:") == 2
+
+
+def test_reading_arrow_starts_at_top_and_goes_clockwise():
+    fig = sunburst_chart(scamps())
+    assert trace(fig).rotation == 90  # first sector at 12 o'clock
+    line = fig.data[1]
+    assert abs(line.x[0]) < 1e-9 and line.y[0] > 0  # starts at the top
+    assert line.x[5] > 0  # then moves right: clockwise
+    assert max(abs(v) for v in list(line.x) + list(line.y)) < 1  # inside the centre circle
+    assert fig.data[3].marker.symbol == "arrow"
