@@ -39,6 +39,7 @@
   <div id="player-box"></div>
   <div id="help">
     <kbd>O</kbd> start of the opening (default 00:00) &middot;
+    <kbd>E</kbd> end of show marker &middot;
     <kbd>N</kbd> new scene down one level &middot;
     <kbd>U</kbd> new scene up one level &middot;
     <kbd>B</kbd> back to base (clears tag) &middot;
@@ -184,6 +185,27 @@ function markOpening() {
   render();
 }
 
+/** Add the end-of-show marker (an 'End' row) at the current video time, or
+ *  move the existing one. It must come after every other scene. */
+function markEnd() {
+  const t = currentTime();
+  const last = scenes[scenes.length - 1];
+  const existing = last && last.description === "End" && scenes.length > 1 ? last : null;
+  const others = existing ? scenes.slice(0, -1) : scenes;
+  if (others.length === 0 || others[others.length - 1].timestamp >= t) {
+    setStatus("The end of the show must come after the last scene.", true);
+    return;
+  }
+  if (existing) {
+    existing.timestamp = t;
+  } else {
+    scenes.push({ description: "End", timestamp: t, level: 0, tag_type: "" });
+  }
+  selected = scenes.length - 1;
+  setStatus(`End of show at ${formatTimestamp(t)}.`);
+  render();
+}
+
 function setTag(tagType) {
   if (selected < 0) return;
   const s = scenes[selected];
@@ -304,6 +326,7 @@ document.addEventListener("keydown", (e) => {
   if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
   switch (e.key.toLowerCase()) {
     case "o": markOpening(); break;
+    case "e": markEnd(); break;
     case "n": addScene((l) => l + 1); break;
     case "u": addScene((l) => l - 1); break;
     case "b": addScene(() => 0); break;

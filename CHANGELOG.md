@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-10
+
+### Added
+- `flower.analysis` (`analyse`, `scene_lengths`): scene lengths, runs, scene
+  tree with own and branch lengths, and show stats (total time, runs, max
+  depth, % time at base, mean/longest scene, single/double tag counts).
+- Logger `E` hotkey: adds (or moves) an `End` row marking the end of the show.
+- Tests for the analysis, including a fixture of a real show.
+
 ## [0.3.1] - 2026-10-10
 
 ### Fixed
@@ -51,7 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pytest tests.
 - `linux-aarch64` and `osx-arm64` pixi platforms.
 
-[Unreleased]: https://github.com/christianjohnhurry/improv-helper/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/christianjohnhurry/improv-helper/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/christianjohnhurry/improv-helper/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/christianjohnhurry/improv-helper/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/christianjohnhurry/improv-helper/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/christianjohnhurry/improv-helper/compare/v0.1.0...v0.2.0
