@@ -101,3 +101,12 @@ def test_version_is_semver_and_in_changelog():
     assert re.fullmatch(r"\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?", flower.__version__)
     changelog = Path(__file__).parent.parent / "CHANGELOG.md"
     assert f"## [{flower.__version__}]" in changelog.read_text()
+
+
+def test_version_file_matches_package_version():
+    from pathlib import Path
+
+    import flower
+
+    version_file = Path(__file__).parent.parent / "VERSION"
+    assert version_file.read_text().strip() == flower.__version__

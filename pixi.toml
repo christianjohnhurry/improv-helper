@@ -8,6 +8,7 @@ version = "0.1.0"
 test = "pytest"
 scenes = "python -m flower.server"
 chart = "python -m flower.chart"
+sunburst = "python -m flower.sunburst_cli"
 
 [dependencies]
 numpy = ">=2.3.3,<3"

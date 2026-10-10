@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-10
+
+### Added
+- `flower.sunburst_chart(table)`: time-proportional Plotly sunburst of a show
+  (title in the centre; ring 1 is the Opening and each base visit; each run's
+  scenes grow out of its base visit; arc angle is branch time). Coloured by tag
+  type with the Opening and base scenes in pastel salmon, a legend, hover details and a
+  stats card.
+- `pixi run sunburst <table.json> [-o out.html]` CLI (default output
+  `<table>-sunburst.html`).
+- `VERSION` file, checked against `flower.__version__` by a test.
+- Tests for the sunburst, using the Scamps Show 3 table.
+
 ## [0.4.0] - 2026-10-10
 
 ### Added
@@ -60,7 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pytest tests.
 - `linux-aarch64` and `osx-arm64` pixi platforms.
 
-[Unreleased]: https://github.com/christianjohnhurry/improv-helper/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/christianjohnhurry/improv-helper/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/christianjohnhurry/improv-helper/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/christianjohnhurry/improv-helper/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/christianjohnhurry/improv-helper/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/christianjohnhurry/improv-helper/compare/v0.2.0...v0.3.0
