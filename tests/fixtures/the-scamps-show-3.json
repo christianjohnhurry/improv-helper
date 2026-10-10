@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "title": "the-scamps-show-3",
+    "date": "2026-09-24",
+    "video_source": "https://www.youtube.com/watch?v=5OfQqqH4isA"
+  },
+  "scenes": [
+    {
+      "description": "Opening",
+      "timestamp": 1933,
+      "level": 0,
+      "tag_type": ""
+    },
+    {
+      "description": "Base Scene",
+      "timestamp": 2085,
+      "level": 0,
+      "tag_type": ""
+    },
+    {
+      "description": "What's your relationship like with your Mother?",
+      "timestamp": 2150,
+      "level": 1,
+      "tag_type": "single"
+    },
+    {
+      "description": "Big Sips and Cool Guy",
+      "timestamp": 2275,
+      "level": 2,
+      "tag_type": "double"
+    },
+    {
+      "description": "Cool Guy on Holiday with Babe",
+      "timestamp": 2411,
+      "level": 3,
+      "tag_type": "single"
+    },
+    {
+      "description": "Base Scene",
+      "timestamp": 2474,
+      "level": 0,
+      "tag_type": ""
+    },
+    {
+      "description": "European Latte Art Championship",
+      "timestamp": 2590,
+      "level": 1,
+      "tag_type": "single"
+    },
+    {
+      "description": "Base Scene",
+      "timestamp": 2840,
+      "level": 0,
+      "tag_type": ""
+    },
+    {
+      "description": "The Bean Cupboard",
+      "timestamp": 2923,
+      "level": 1,
+      "tag_type": "double"
+    },
+    {
+      "description": "That was his lawyer?!",
+      "timestamp": 2998,
+      "level": 2,
+      "tag_type": "double"
+    },
+    {
+      "description": "Base Scene",
+      "timestamp": 3151,
+      "level": 0,
+      "tag_type": ""
+    },
+    {
+      "description": "End",
+      "timestamp": 3183,
+      "level": 0,
+      "tag_type": ""
+    }
+  ]
+}

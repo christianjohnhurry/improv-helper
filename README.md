@@ -19,6 +19,7 @@ then log scenes while it plays. Tables are saved as JSON in `data/`.
 | Key | Action |
 | --- | --- |
 | `O` | Start of the opening: moves the first row (default 00:00) to the current time |
+| `E` | End of the show: adds an `End` row at the current time (or moves it); the last row is the end-of-show marker |
 | `N` | New scene at the current time, down one level |
 | `U` | New scene up one level |
 | `B` | New scene back at the base level (clears the tag) |
@@ -46,6 +47,24 @@ fig.show()  # or fig.write_html("chart.html")
 Time runs along x (MM:SS) and scene level along y. Scenes at the same level are
 flat lines, transitions are bezier arcs, each level has its own pastel colour
 and scene names are annotated.
+
+## Show analysis
+
+```python
+from flower import SceneTable, analyse
+
+a = analyse(SceneTable.load_json("data/my-show.json"))
+a.stats.total_time, a.stats.base_percent, a.runs[0].scenes[0].branch_length
+```
+
+The first row is the Opening and the last row is the end-of-show marker (zero
+length, not a scene; log it with `E`). A scene's length runs from its
+timestamp to the next row's. Its parent is the latest earlier scene one level
+up, and a run is a base visit (level 0, after the Opening) plus the scenes
+that grow from it. Stats: total time, runs, max depth, % of time at base
+(base visits only, Opening excluded), mean and longest scene (Opening
+excluded), and single vs double tag counts. Tables with fewer than two rows,
+or a scene with no parent, raise `ValidationError`.
 
 ## Development
 
