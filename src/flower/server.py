@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Path as PathParam
@@ -81,10 +82,20 @@ def create_app(data_dir: str | Path = DEFAULT_DATA_DIR) -> FastAPI:
 
 
 def main() -> None:
-    """Run the server on localhost, storing tables in ./data."""
+    """Run the server, storing tables in ./data.
+
+    Binds to the HOST environment variable (default 127.0.0.1, localhost only)
+    and listens on PORT (default 8000). Set HOST=0.0.0.0 to be reachable from
+    outside a container; the app has no authentication, so only do this on a
+    trusted network.
+    """
     import uvicorn
 
-    uvicorn.run(create_app(), host="127.0.0.1", port=8000)
+    uvicorn.run(
+        create_app(),
+        host=os.environ.get("HOST", "127.0.0.1"),
+        port=int(os.environ.get("PORT", "8000")),
+    )
 
 
 if __name__ == "__main__":

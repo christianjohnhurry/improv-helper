@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hotkeys for new scenes (deeper, same level, up one, back to base) and for
   single/double tags; row editing, click-to-seek, save and CSV export.
 - API endpoints to list, load, save and export scene tables stored in `data/`.
+- `HOST` and `PORT` environment variables for `pixi run scenes` (default
+  `127.0.0.1:8000`).
 - `fastapi`, `uvicorn` and `httpx` dependencies.
 - `CLAUDE.md` with commit guidelines.
 

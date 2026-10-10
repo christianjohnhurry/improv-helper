@@ -8,7 +8,9 @@ The `flower` package for analysing the structure of improv sets.
 pixi run scenes
 ```
 
-Open http://127.0.0.1:8000. Pick a local video file or paste a YouTube link,
+Open http://127.0.0.1:8000. The server binds to `HOST` (default `127.0.0.1`)
+and `PORT` (default `8000`); inside a container use `HOST=0.0.0.0 pixi run scenes`
+(there is no authentication, so only on a trusted network). Pick a local video file or paste a YouTube link,
 then log scenes while it plays. Tables are saved as JSON in `data/`.
 
 | Key | Action |
