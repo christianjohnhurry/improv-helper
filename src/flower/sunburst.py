@@ -143,3 +143,4 @@ def sunburst_chart(table: SceneTable) -> go.Figure:
         margin=dict(l=20, r=20, t=60, b=20),
     )
     return fig
+

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from flower import Scene, SceneTable, analyse, sunburst_chart
+from flower.sunburst_cli import main
 
 FIXTURE = Path(__file__).parent / "fixtures" / "the-scamps-show-3.json"
 
@@ -78,3 +79,26 @@ def test_minimal_show():
     table = SceneTable(scenes=[Scene("Opening", 0, 0, ""), Scene("End", 30, 0, "")])
     t = trace(sunburst_chart(table))
     assert list(t.ids) == ["show", "s0"] and list(t.values) == [30, 30]
+
+
+def test_cli_default_output(tmp_path, capsys):
+    path = tmp_path / "show.json"
+    path.write_text(FIXTURE.read_text())
+    assert main([str(path)]) == 0
+    out = tmp_path / "show-sunburst.html"
+    assert "Base Scene" in out.read_text()
+    assert capsys.readouterr().out.strip() == str(out)
+
+
+def test_cli_explicit_output(tmp_path):
+    out = tmp_path / "out.html"
+    assert main([str(FIXTURE), "-o", str(out)]) == 0
+    assert out.exists()
+
+
+def test_cli_errors(tmp_path, capsys):
+    assert main([str(tmp_path / "nope.json")]) == 1
+    short = tmp_path / "short.json"
+    SceneTable(scenes=[Scene("Opening", 0, 0, "")]).save_json(short)
+    assert main([str(short)]) == 1
+    assert capsys.readouterr().err.count("error:") == 2
