@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `HOST` and `PORT` environment variables for `pixi run scenes` (default
   `127.0.0.1:8000`).
 - `fastapi`, `uvicorn` and `httpx` dependencies.
-- `CLAUDE.md` with commit guidelines.
 
 ## [0.1.0] - 2026-10-10
 
