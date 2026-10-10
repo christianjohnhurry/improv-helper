@@ -90,3 +90,14 @@ def test_csv_export(tmp_path):
     assert rows[0] == ["description", "timestamp", "level", "tag_type"]
     assert rows[2] == ["Deeper", "01:15", "1", "single"]
     assert rows[4] == ["Back to base", "03:20", "0", ""]
+
+
+def test_version_is_semver_and_in_changelog():
+    import re
+    from pathlib import Path
+
+    import flower
+
+    assert re.fullmatch(r"\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?", flower.__version__)
+    changelog = Path(__file__).parent.parent / "CHANGELOG.md"
+    assert f"## [{flower.__version__}]" in changelog.read_text()
