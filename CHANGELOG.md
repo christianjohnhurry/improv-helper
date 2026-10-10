@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `plotly` dependency.
 - Tests for the flower chart.
 
+### Changed
+- Ignore the `data/` directory so saved scene tables are not committed by accident.
+
 ## [0.2.0] - 2026-10-10
 
 ### Added
