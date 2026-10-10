@@ -26,6 +26,13 @@ field (press Enter to finish editing). "Export CSV" saves the table and download
 
 ## Flower chart
 
+```
+pixi run chart data/my-show.json            # writes data/my-show.html
+pixi run chart data/my-show.json -o out.html
+```
+
+Or from Python:
+
 ```python
 from flower import SceneTable, flower_chart
 

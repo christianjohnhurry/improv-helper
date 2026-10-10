@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `flower.flower_chart(table)`: renders a scene table as a Plotly flower chart
   (time on x as MM:SS, level on y, flat lines for same-level scenes, bezier
   arcs for transitions, pastel colour per level, scene names annotated).
+- `pixi run chart <table.json> [-o out.html]` CLI that writes a flower chart as HTML.
 - `plotly` dependency.
 - Tests for the flower chart.
 
