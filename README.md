@@ -22,7 +22,7 @@ then log scenes while it plays. Tables are saved as JSON in `data/`.
 | `1` / `2` | Set the selected scene's tag type to single / double |
 
 Click a row to seek the video to it. Hotkeys are disabled while typing in a
-field. "Export CSV" saves the table and downloads it as CSV.
+field (press Enter to finish editing). "Export CSV" saves the table and downloads it as CSV.
 
 ## Development
 

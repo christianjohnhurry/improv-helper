@@ -44,7 +44,7 @@
     <kbd>B</kbd> back to base (clears tag) &middot;
     <kbd>1</kbd> single tag &middot;
     <kbd>2</kbd> double tag (on the selected row).
-    Hotkeys are off while typing in a field. Click a row to seek.
+    Hotkeys are off while typing in a field; press Enter to finish editing. Click a row to seek.
   </div>
 </section>
 <section id="table-pane">
@@ -274,6 +274,10 @@ function textInput(value, onChange) {
   const input = document.createElement("input");
   input.value = value;
   input.addEventListener("change", () => onChange(input.value));
+  // Enter commits the edit and leaves the field so hotkeys work again.
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") input.blur();
+  });
   return input;
 }
 
