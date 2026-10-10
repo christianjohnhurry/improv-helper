@@ -12,6 +12,7 @@ from flower.scene_table import (
     format_timestamp,
     parse_timestamp,
 )
+from flower.sunburst import sunburst_chart
 from flower.visualise import flower_chart
 
 __all__ = [
@@ -29,5 +30,6 @@ __all__ = [
     "ValidationError",
     "format_timestamp",
     "flower_chart",
+    "sunburst_chart",
     "parse_timestamp",
 ]
