@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "flower"
+dynamic = ["version"]
+requires-python = ">=3.11"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/flower"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.hatch.version]
+path = "src/flower/__init__.py"
