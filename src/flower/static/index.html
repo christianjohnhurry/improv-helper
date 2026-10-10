@@ -38,9 +38,9 @@
   </div>
   <div id="player-box"></div>
   <div id="help">
-    <kbd>N</kbd> new scene one level deeper &middot;
-    <kbd>S</kbd> same level &middot;
-    <kbd>U</kbd> up one level &middot;
+    <kbd>O</kbd> start of the opening (default 00:00) &middot;
+    <kbd>N</kbd> new scene down one level &middot;
+    <kbd>U</kbd> new scene up one level &middot;
     <kbd>B</kbd> back to base (clears tag) &middot;
     <kbd>1</kbd> single tag &middot;
     <kbd>2</kbd> double tag (on the selected row).
@@ -71,7 +71,8 @@
 "use strict";
 
 const TAG_TYPES = ["", "single", "double"];
-let scenes = [];
+const newOpening = () => ({ description: "Opening", timestamp: 0, level: 0, tag_type: "" });
+let scenes = [newOpening()];
 let selected = -1;
 let player = null; // {getTime(), seek(t)} for the active video
 
@@ -165,6 +166,22 @@ function addScene(levelFor) {
   selected = scenes.findIndex((s) => s.timestamp === t);
   setStatus("");
   render(true);
+}
+
+/** Move the opening (the first row) to the current video time. */
+function markOpening() {
+  const t = currentTime();
+  if (scenes.length === 0) {
+    scenes.push({ ...newOpening(), timestamp: t });
+  } else if (scenes.length > 1 && scenes[1].timestamp <= t) {
+    setStatus(`The opening must start before the next scene (${formatTimestamp(scenes[1].timestamp)}).`, true);
+    return;
+  } else {
+    scenes[0].timestamp = t;
+  }
+  selected = 0;
+  setStatus(`Opening starts at ${formatTimestamp(t)}.`);
+  render();
 }
 
 function setTag(tagType) {
@@ -282,8 +299,8 @@ document.addEventListener("keydown", (e) => {
   const tag = e.target.tagName;
   if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
   switch (e.key.toLowerCase()) {
+    case "o": markOpening(); break;
     case "n": addScene((l) => l + 1); break;
-    case "s": addScene((l) => l); break;
     case "u": addScene((l) => l - 1); break;
     case "b": addScene(() => 0); break;
     case "1": setTag("single"); break;

@@ -15,9 +15,9 @@ then log scenes while it plays. Tables are saved as JSON in `data/`.
 
 | Key | Action |
 | --- | --- |
-| `N` | New scene at the current time, one level deeper |
-| `S` | New scene at the same level |
-| `U` | New scene one level up |
+| `O` | Start of the opening: moves the first row (default 00:00) to the current time |
+| `N` | New scene at the current time, down one level |
+| `U` | New scene up one level |
 | `B` | New scene back at the base level (clears the tag) |
 | `1` / `2` | Set the selected scene's tag type to single / double |
 

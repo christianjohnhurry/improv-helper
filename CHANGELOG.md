@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Scene logger web app (`pixi run scenes`): FastAPI server plus a single
   HTML/JS page for logging scenes against a local video file or YouTube link.
-- Hotkeys for new scenes (deeper, same level, up one, back to base) and for
+- Hotkeys for the opening start, and for new scenes (down one, up one, back to base) and for
   single/double tags; row editing, click-to-seek, save and CSV export.
 - API endpoints to list, load, save and export scene tables stored in `data/`.
 - `HOST` and `PORT` environment variables for `pixi run scenes` (default
