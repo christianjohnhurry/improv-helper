@@ -91,11 +91,12 @@ def main() -> None:
     """
     import uvicorn
 
-    uvicorn.run(
-        create_app(),
-        host=os.environ.get("HOST", "127.0.0.1"),
-        port=int(os.environ.get("PORT", "8000")),
-    )
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "8000"))
+    # YouTube embeds fail from 127.0.0.1, so point people at localhost instead.
+    url_host = "localhost" if host in ("127.0.0.1", "0.0.0.0") else host
+    print(f"Scene logger: open http://{url_host}:{port}", flush=True)
+    uvicorn.run(create_app(), host=host, port=port)
 
 
 if __name__ == "__main__":
