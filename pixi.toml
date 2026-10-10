@@ -17,6 +17,7 @@ python = ">=3.11"
 fastapi = ">=0.143.0,<0.144"
 uvicorn = ">=0.54.0,<0.55"
 httpx = ">=0.28.1,<0.29"
+plotly = ">=6,<7"
 
 [pypi-dependencies]
 flower = { path = ".", editable = true }

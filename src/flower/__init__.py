@@ -1,6 +1,6 @@
 """Flower: tools for building and exporting improv scene tables."""
 
-__version__ = "0.2.0"  # Semantic Versioning; keep in sync with CHANGELOG.md
+__version__ = "0.3.0"  # Semantic Versioning; keep in sync with CHANGELOG.md
 
 from flower.scene_table import (
     TAG_TYPES,
@@ -11,6 +11,7 @@ from flower.scene_table import (
     format_timestamp,
     parse_timestamp,
 )
+from flower.visualise import flower_chart
 
 __all__ = [
     "__version__",
@@ -20,5 +21,6 @@ __all__ = [
     "ShowMetadata",
     "ValidationError",
     "format_timestamp",
+    "flower_chart",
     "parse_timestamp",
 ]

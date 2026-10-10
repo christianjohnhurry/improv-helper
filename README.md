@@ -24,6 +24,19 @@ then log scenes while it plays. Tables are saved as JSON in `data/`.
 Click a row to seek the video to it. Hotkeys are disabled while typing in a
 field (press Enter to finish editing). "Export CSV" saves the table and downloads it as CSV.
 
+## Flower chart
+
+```python
+from flower import SceneTable, flower_chart
+
+fig = flower_chart(SceneTable.load_json("data/my-show.json"))
+fig.show()  # or fig.write_html("chart.html")
+```
+
+Time runs along x (MM:SS) and scene level along y. Scenes at the same level are
+flat lines, transitions are bezier arcs, each level has its own pastel colour
+and scene names are annotated.
+
 ## Development
 
 ```
