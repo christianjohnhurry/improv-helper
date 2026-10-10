@@ -6,6 +6,7 @@ version = "0.1.0"
 
 [tasks]
 test = "pytest"
+scenes = "python -m flower.server"
 
 [dependencies]
 numpy = ">=2.3.3,<3"
@@ -13,6 +14,9 @@ pandas = ">=2.3.3,<3"
 networkx = ">=3.5,<4"
 pytest = ">=8"
 python = ">=3.11"
+fastapi = ">=0.143.0,<0.144"
+uvicorn = ">=0.54.0,<0.55"
+httpx = ">=0.28.1,<0.29"
 
 [pypi-dependencies]
 flower = { path = ".", editable = true }

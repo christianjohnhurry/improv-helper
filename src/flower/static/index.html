@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flower scene logger</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px system-ui, sans-serif; display: flex; height: 100vh; }
+  #video-pane { flex: 1 1 50%; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  #table-pane { flex: 1 1 50%; padding: 12px; overflow-y: auto; border-left: 1px solid #ccc; min-width: 0; }
+  #player-box { background: #000; aspect-ratio: 16 / 9; width: 100%; }
+  #player-box video, #player-box iframe { width: 100%; height: 100%; display: block; }
+  .bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+  input, select, button { font: inherit; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border-bottom: 1px solid #ddd; padding: 2px 4px; text-align: left; }
+  td input, td select { width: 100%; border: 1px solid transparent; background: transparent; }
+  td input:focus, td select:focus { border-color: #888; background: #fff; }
+  td.ts input { width: 6ch; }
+  td.lvl input { width: 5ch; }
+  tr.selected { background: #fff3c4; }
+  tr.current { outline: 2px solid #4a90d9; }
+  #status { min-height: 1.4em; }
+  #status.error { color: #b00020; }
+  #help { color: #555; font-size: 12px; line-height: 1.5; }
+  kbd { border: 1px solid #aaa; border-radius: 3px; padding: 0 4px; background: #f4f4f4; }
+</style>
+</head>
+<body>
+<section id="video-pane">
+  <div class="bar">
+    <label>Video file <input type="file" id="video-file" accept="video/*"></label>
+  </div>
+  <div class="bar">
+    <input id="youtube-url" placeholder="YouTube link" size="30">
+    <button id="load-youtube">Load</button>
+  </div>
+  <div id="player-box"></div>
+  <div id="help">
+    <kbd>O</kbd> start of the opening (default 00:00) &middot;
+    <kbd>N</kbd> new scene down one level &middot;
+    <kbd>U</kbd> new scene up one level &middot;
+    <kbd>B</kbd> back to base (clears tag) &middot;
+    <kbd>1</kbd> single tag &middot;
+    <kbd>2</kbd> double tag (on the selected row).
+    Hotkeys are off while typing in a field; press Enter to finish editing. Click a row to seek.
+  </div>
+</section>
+<section id="table-pane">
+  <div class="bar">
+    <input id="name" placeholder="table name" size="14" list="table-names">
+    <datalist id="table-names"></datalist>
+    <button id="load">Load</button>
+    <button id="save">Save</button>
+    <button id="export">Export CSV</button>
+  </div>
+  <div class="bar">
+    <input id="meta-title" placeholder="Title">
+    <input id="meta-date" placeholder="Date (YYYY-MM-DD)" size="16">
+    <input id="meta-video" placeholder="Video source" size="20">
+  </div>
+  <div id="status"></div>
+  <table>
+    <thead><tr><th>Time</th><th>Description</th><th>Level</th><th>Tag</th><th></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</section>
+
+<script>
+"use strict";
+
+const TAG_TYPES = ["", "single", "double"];
+const newOpening = () => ({ description: "Opening", timestamp: 0, level: 0, tag_type: "" });
+let scenes = [newOpening()];
+let selected = -1;
+let player = null; // {getTime(), seek(t)} for the active video
+
+const $ = (id) => document.getElementById(id);
+
+function parseTimestamp(text) {
+  const m = /^(\d+):(\d{1,2})$/.exec(text.trim());
+  if (!m || Number(m[2]) > 59) return null;
+  return Number(m[1]) * 60 + Number(m[2]);
+}
+
+function formatTimestamp(seconds) {
+  const s = Math.max(0, Math.floor(seconds));
+  return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+}
+
+function setStatus(text, isError) {
+  const el = $("status");
+  el.textContent = text;
+  el.className = isError ? "error" : "";
+}
+
+// ---- video -------------------------------------------------------------
+
+function useLocalVideo(file) {
+  const video = document.createElement("video");
+  video.controls = true;
+  video.src = URL.createObjectURL(file);
+  $("player-box").replaceChildren(video);
+  player = {
+    getTime: () => video.currentTime,
+    seek: (t) => { video.currentTime = t; },
+  };
+  $("meta-video").value = file.name;
+}
+
+function youtubeId(url) {
+  const m = /(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/)([\w-]{11})/.exec(url);
+  return m ? m[1] : null;
+}
+
+let ytApiReady = null;
+function loadYouTubeApi() {
+  if (ytApiReady) return ytApiReady;
+  ytApiReady = new Promise((resolve) => {
+    window.onYouTubeIframeAPIReady = resolve;
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+  });
+  return ytApiReady;
+}
+
+async function useYouTube(url) {
+  const id = youtubeId(url);
+  if (!id) { setStatus("Could not find a video id in that YouTube link.", true); return; }
+  await loadYouTubeApi();
+  const holder = document.createElement("div");
+  $("player-box").replaceChildren(holder);
+  const yt = new YT.Player(holder, {
+    videoId: id,
+    width: "100%",
+    height: "100%",
+  });
+  player = {
+    getTime: () => (yt.getCurrentTime ? yt.getCurrentTime() : 0),
+    seek: (t) => yt.seekTo(t, true),
+  };
+  $("meta-video").value = url;
+}
+
+// ---- scenes ------------------------------------------------------------
+
+function currentTime() {
+  return player ? Math.floor(player.getTime()) : 0;
+}
+
+/** Add a scene at the current video time. levelFor maps the previous level
+ *  (or -1 when there is none) to the new level. */
+function addScene(levelFor) {
+  const t = currentTime();
+  if (scenes.some((s) => s.timestamp === t)) {
+    setStatus(`A scene already exists at ${formatTimestamp(t)}.`, true);
+    return;
+  }
+  let prev = null;
+  for (const s of scenes) if (s.timestamp < t) prev = s;
+  const level = Math.max(0, levelFor(prev ? prev.level : -1));
+  scenes.push({ description: "", timestamp: t, level, tag_type: "" });
+  scenes.sort((a, b) => a.timestamp - b.timestamp);
+  selected = scenes.findIndex((s) => s.timestamp === t);
+  setStatus("");
+  render(true);
+}
+
+/** Move the opening (the first row) to the current video time. */
+function markOpening() {
+  const t = currentTime();
+  if (scenes.length === 0) {
+    scenes.push({ ...newOpening(), timestamp: t });
+  } else if (scenes.length > 1 && scenes[1].timestamp <= t) {
+    setStatus(`The opening must start before the next scene (${formatTimestamp(scenes[1].timestamp)}).`, true);
+    return;
+  } else {
+    scenes[0].timestamp = t;
+  }
+  selected = 0;
+  setStatus(`Opening starts at ${formatTimestamp(t)}.`);
+  render();
+}
+
+function setTag(tagType) {
+  if (selected < 0) return;
+  const s = scenes[selected];
+  if (s.level === 0) {
+    s.tag_type = "";
+    setStatus("The base scene cannot have a tag.", true);
+  } else {
+    s.tag_type = tagType;
+    setStatus("");
+  }
+  render();
+}
+
+function render(focusDescription) {
+  const tbody = $("rows");
+  tbody.replaceChildren();
+  scenes.forEach((scene, i) => {
+    const tr = document.createElement("tr");
+    if (i === selected) tr.className = "selected";
+    tr.addEventListener("click", () => {
+      selected = i;
+      if (player) player.seek(scene.timestamp);
+      highlightSelection();
+    });
+
+    const ts = cell("ts", textInput(formatTimestamp(scene.timestamp), (v) => {
+      const sec = parseTimestamp(v);
+      if (sec === null) { setStatus("Timestamps look like MM:SS.", true); return; }
+      scene.timestamp = sec;
+      scenes.sort((a, b) => a.timestamp - b.timestamp);
+      selected = scenes.indexOf(scene);
+      setStatus("");
+      render();
+    }));
+    const desc = cell("desc", textInput(scene.description, (v) => { scene.description = v; }));
+    desc.firstChild.className = "description";
+    const lvlInput = textInput(String(scene.level), (v) => {
+      const n = Number(v);
+      if (!Number.isInteger(n) || n < 0) { setStatus("Level must be a whole number >= 0.", true); render(); return; }
+      scene.level = n;
+      if (n === 0) scene.tag_type = "";
+      setStatus("");
+      render();
+    });
+    lvlInput.type = "number";
+    lvlInput.min = "0";
+    const lvl = cell("lvl", lvlInput);
+
+    const sel = document.createElement("select");
+    for (const t of TAG_TYPES) {
+      const o = document.createElement("option");
+      o.value = t;
+      o.textContent = t || "(none)";
+      sel.appendChild(o);
+    }
+    sel.value = scene.tag_type;
+    sel.disabled = scene.level === 0;
+    sel.addEventListener("change", () => { scene.tag_type = sel.value; });
+    const tag = cell("tag", sel);
+
+    const del = document.createElement("button");
+    del.textContent = "✕";
+    del.title = "Delete scene";
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      scenes.splice(i, 1);
+      selected = -1;
+      render();
+    });
+
+    tr.append(ts, desc, lvl, tag, cell("", del));
+    tbody.appendChild(tr);
+  });
+  if (focusDescription && selected >= 0) {
+    const input = tbody.children[selected].querySelector(".description");
+    if (input) input.focus();
+  }
+}
+
+function cell(cls, child) {
+  const td = document.createElement("td");
+  td.className = cls;
+  td.appendChild(child);
+  return td;
+}
+
+function textInput(value, onChange) {
+  const input = document.createElement("input");
+  input.value = value;
+  input.addEventListener("change", () => onChange(input.value));
+  // Enter commits the edit and leaves the field so hotkeys work again.
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") input.blur();
+  });
+  return input;
+}
+
+function highlightSelection() {
+  [...$("rows").children].forEach((tr, i) => {
+    tr.classList.toggle("selected", i === selected);
+  });
+}
+
+// Mark the row for the current video time.
+setInterval(() => {
+  if (!player) return;
+  const t = currentTime();
+  let cur = -1;
+  scenes.forEach((s, i) => { if (s.timestamp <= t) cur = i; });
+  [...$("rows").children].forEach((tr, i) => tr.classList.toggle("current", i === cur));
+}, 500);
+
+// ---- hotkeys -----------------------------------------------------------
+
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = e.target.tagName;
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+  switch (e.key.toLowerCase()) {
+    case "o": markOpening(); break;
+    case "n": addScene((l) => l + 1); break;
+    case "u": addScene((l) => l - 1); break;
+    case "b": addScene(() => 0); break;
+    case "1": setTag("single"); break;
+    case "2": setTag("double"); break;
+    default: return;
+  }
+  e.preventDefault();
+});
+
+// ---- server ------------------------------------------------------------
+
+function tableName() {
+  const name = $("name").value.trim();
+  if (!/^[A-Za-z0-9_-]+$/.test(name)) {
+    setStatus("Table names may only use letters, digits, '-' and '_'.", true);
+    return null;
+  }
+  return name;
+}
+
+function currentTable() {
+  return {
+    metadata: {
+      title: $("meta-title").value,
+      date: $("meta-date").value,
+      video_source: $("meta-video").value,
+    },
+    scenes,
+  };
+}
+
+async function errorText(res) {
+  try {
+    const body = await res.json();
+    return typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+  } catch (_) {
+    return res.statusText;
+  }
+}
+
+async function refreshNames() {
+  const res = await fetch("/api/tables");
+  if (!res.ok) return;
+  const names = await res.json();
+  $("table-names").replaceChildren(...names.map((n) => {
+    const o = document.createElement("option");
+    o.value = n;
+    return o;
+  }));
+}
+
+$("save").addEventListener("click", async () => {
+  const name = tableName();
+  if (!name) return;
+  const res = await fetch(`/api/tables/${name}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(currentTable()),
+  });
+  if (!res.ok) { setStatus("Not saved: " + (await errorText(res)), true); return; }
+  setStatus(`Saved ${name}.`);
+  refreshNames();
+});
+
+$("load").addEventListener("click", async () => {
+  const name = tableName();
+  if (!name) return;
+  const res = await fetch(`/api/tables/${name}`);
+  if (!res.ok) { setStatus("Not loaded: " + (await errorText(res)), true); return; }
+  const table = await res.json();
+  $("meta-title").value = table.metadata.title;
+  $("meta-date").value = table.metadata.date;
+  $("meta-video").value = table.metadata.video_source;
+  scenes = table.scenes;
+  selected = -1;
+  setStatus(`Loaded ${name}. Re-pick the video file or YouTube link to watch it.`);
+  render();
+});
+
+$("export").addEventListener("click", async () => {
+  const name = tableName();
+  if (!name) return;
+  // Save first so the export matches what is on screen.
+  const saved = await fetch(`/api/tables/${name}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(currentTable()),
+  });
+  if (!saved.ok) { setStatus("Not exported: " + (await errorText(saved)), true); return; }
+  const res = await fetch(`/api/tables/${name}/csv`);
+  if (!res.ok) { setStatus("Not exported: " + (await errorText(res)), true); return; }
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${name}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  setStatus(`Exported ${name}.csv.`);
+  refreshNames();
+});
+
+$("video-file").addEventListener("change", (e) => {
+  if (e.target.files[0]) useLocalVideo(e.target.files[0]);
+});
+$("load-youtube").addEventListener("click", () => useYouTube($("youtube-url").value));
+
+refreshNames();
+render();
+</script>
+</body>
+</html>

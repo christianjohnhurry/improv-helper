@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-10
+
+### Added
+- Scene logger web app (`pixi run scenes`): FastAPI server plus a single
+  HTML/JS page for logging scenes against a local video file or YouTube link.
+- Hotkeys for the opening start, and for new scenes (down one, up one, back to base) and for
+  single/double tags; row editing, click-to-seek, save and CSV export.
+- API endpoints to list, load, save and export scene tables stored in `data/`.
+- `HOST` and `PORT` environment variables for `pixi run scenes` (default
+  `127.0.0.1:8000`).
+- `fastapi`, `uvicorn` and `httpx` dependencies.
+
 ## [0.1.0] - 2026-10-10
 
 ### Added
@@ -20,5 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pytest tests.
 - `linux-aarch64` and `osx-arm64` pixi platforms.
 
-[Unreleased]: https://github.com/christianjohnhurry/improv-helper/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/christianjohnhurry/improv-helper/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/christianjohnhurry/improv-helper/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/christianjohnhurry/improv-helper/releases/tag/v0.1.0
