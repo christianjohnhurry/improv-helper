@@ -48,6 +48,25 @@ Time runs along x (MM:SS) and scene level along y. Scenes at the same level are
 flat lines, transitions are bezier arcs, each level has its own pastel colour
 and scene names are annotated.
 
+## Sunburst chart
+
+```
+pixi run sunburst data/my-show.json            # writes data/my-show-sunburst.html
+pixi run sunburst data/my-show.json -o out.html
+```
+
+Or from Python: `sunburst_chart(SceneTable.load_json("data/my-show.json")).show()`.
+
+An interactive time-proportional sunburst. The show title is in the centre;
+ring 1 is the Opening and each base visit in show order (labelled with its
+description), and each run's scenes grow outward from the base visit that
+started it. Arc angle is the whole-branch time. The end marker isn't drawn.
+Single and double tags are coloured differently, with the Opening and base
+scenes in grey (see the legend). Hover for name, start (MM:SS from the
+Opening), own length, branch length and tag type. A stats card beside the chart
+shows total time, runs, max depth, % at base, mean and longest scene, and
+single/double tag counts.
+
 ## Show analysis
 
 ```python
