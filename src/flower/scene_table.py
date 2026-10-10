@@ -16,7 +16,17 @@ class ValidationError(ValueError):
 
 
 def parse_timestamp(text: str) -> int:
-    """Convert 'MM:SS' (minutes may exceed 59) to seconds."""
+    """Convert an 'MM:SS' string to seconds.
+
+    Args:
+        text: Timestamp as 'MM:SS'. Minutes may exceed 59; seconds must be 0-59.
+
+    Returns:
+        The timestamp in whole seconds.
+
+    Raises:
+        ValueError: If the text is not a valid MM:SS timestamp.
+    """
     minutes, sep, seconds = text.strip().partition(":")
     if not sep or not minutes.isdigit() or not seconds.isdigit():
         raise ValueError(f"invalid MM:SS timestamp: {text!r}")
@@ -26,7 +36,17 @@ def parse_timestamp(text: str) -> int:
 
 
 def format_timestamp(seconds: int) -> str:
-    """Convert seconds to 'MM:SS'."""
+    """Convert seconds to an 'MM:SS' string.
+
+    Args:
+        seconds: Non-negative timestamp in seconds.
+
+    Returns:
+        The timestamp formatted as zero-padded 'MM:SS'.
+
+    Raises:
+        ValueError: If seconds is negative.
+    """
     if seconds < 0:
         raise ValueError(f"negative timestamp: {seconds}")
     minutes, secs = divmod(int(seconds), 60)
@@ -54,6 +74,15 @@ class SceneTable:
     scenes: list[Scene] = field(default_factory=list)
 
     def validate(self) -> None:
+        """Check the table's invariants.
+
+        Timestamps must be strictly increasing, levels must be >= 0, tag_type
+        must be in TAG_TYPES, and a level-0 (base) scene must have an empty
+        tag_type.
+
+        Raises:
+            ValidationError: If any invariant is violated.
+        """
         previous = None
         for i, scene in enumerate(self.scenes):
             if scene.level < 0:
@@ -71,6 +100,11 @@ class SceneTable:
             previous = scene.timestamp
 
     def to_dict(self) -> dict:
+        """Convert the table to a JSON-serialisable dict.
+
+        Returns:
+            A dict with 'metadata' and 'scenes' keys.
+        """
         return {
             "metadata": asdict(self.metadata),
             "scenes": [asdict(s) for s in self.scenes],
@@ -78,6 +112,17 @@ class SceneTable:
 
     @classmethod
     def from_dict(cls, data: dict) -> SceneTable:
+        """Build a validated table from a dict as produced by to_dict.
+
+        Args:
+            data: Dict with optional 'metadata' and 'scenes' keys.
+
+        Returns:
+            The constructed SceneTable.
+
+        Raises:
+            ValidationError: If the resulting table is invalid.
+        """
         table = cls(
             metadata=ShowMetadata(**data.get("metadata", {})),
             scenes=[Scene(**s) for s in data.get("scenes", [])],
@@ -86,15 +131,43 @@ class SceneTable:
         return table
 
     def save_json(self, path: str | Path) -> None:
+        """Validate the table and write it to a JSON file.
+
+        Args:
+            path: Destination file path.
+
+        Raises:
+            ValidationError: If the table is invalid.
+        """
         self.validate()
         Path(path).write_text(json.dumps(self.to_dict(), indent=2) + "\n")
 
     @classmethod
     def load_json(cls, path: str | Path) -> SceneTable:
+        """Load and validate a table from a JSON file.
+
+        Args:
+            path: Path of the JSON file written by save_json.
+
+        Returns:
+            The loaded SceneTable.
+
+        Raises:
+            ValidationError: If the loaded table is invalid.
+        """
         return cls.from_dict(json.loads(Path(path).read_text()))
 
     def export_csv(self, path: str | Path) -> None:
-        """Write scene rows only, with timestamps as MM:SS."""
+        """Validate the table and export the scene rows to CSV.
+
+        Metadata is not included; timestamps are written as MM:SS.
+
+        Args:
+            path: Destination file path.
+
+        Raises:
+            ValidationError: If the table is invalid.
+        """
         self.validate()
         with open(path, "w", newline="") as f:
             writer = csv.writer(f)
