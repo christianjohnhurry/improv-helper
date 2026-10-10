@@ -1,12 +1,18 @@
 [workspace]
 channels = ["conda-forge"]
 name = "improv-helper"
-platforms = ["osx-64"]
+platforms = ["osx-64", "osx-arm64", "linux-aarch64"]
 version = "0.1.0"
 
 [tasks]
+test = "pytest"
 
 [dependencies]
 numpy = ">=2.3.3,<3"
 pandas = ">=2.3.3,<3"
 networkx = ">=3.5,<4"
+pytest = ">=8"
+python = ">=3.11"
+
+[pypi-dependencies]
+flower = { path = ".", editable = true }
