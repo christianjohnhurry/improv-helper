@@ -51,12 +51,12 @@ def test_colours_by_tag_type():
     table = scamps()
     t = trace(sunburst_chart(table))
     colors = dict(zip(t.ids, t.marker.colors))
-    grey = colors["show"]
+    neutral = colors["show"]
     singles = {c for i, c in colors.items() if i != "show" and table.scenes[int(i[1:])].tag_type == "single"}
     doubles = {c for i, c in colors.items() if i != "show" and table.scenes[int(i[1:])].tag_type == "double"}
     assert len(singles) == len(doubles) == 1 and singles != doubles
-    assert not ({grey} & (singles | doubles))
-    assert colors["s0"] == grey and colors["s1"] == grey  # Opening and a base scene
+    assert not ({neutral} & (singles | doubles))
+    assert colors["s0"] == neutral and colors["s1"] == neutral  # Opening and a base scene
 
 
 def test_hover_fields():

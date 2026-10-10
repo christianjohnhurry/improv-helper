@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `flower.sunburst_chart(table)`: time-proportional Plotly sunburst of a show
   (title in the centre; ring 1 is the Opening and each base visit; each run's
   scenes grow out of its base visit; arc angle is branch time). Coloured by tag
-  type with the Opening and base scenes in grey, a legend, hover details and a
+  type with the Opening and base scenes in pastel salmon, a legend, hover details and a
   stats card.
 - `pixi run sunburst <table.json> [-o out.html]` CLI (default output
   `<table>-sunburst.html`).

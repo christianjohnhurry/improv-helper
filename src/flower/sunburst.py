@@ -8,7 +8,7 @@ from flower.analysis import SceneNode, ShowAnalysis, analyse
 from flower.scene_table import SceneTable, format_timestamp
 
 ROOT_ID = "show"
-NEUTRAL_COLOR = "#cccccc"  # Opening and base scenes
+NEUTRAL_COLOR = "#ffb4a2"  # Opening and base scenes (pastel salmon)
 TAG_COLORS = {"single": "#8ecae6", "double": "#ffb703"}
 LEGEND = [("Opening / base", NEUTRAL_COLOR), *((t.capitalize(), c) for t, c in TAG_COLORS.items())]
 SUNBURST_DOMAIN = [0.0, 0.68]

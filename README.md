@@ -62,7 +62,7 @@ ring 1 is the Opening and each base visit in show order (labelled with its
 description), and each run's scenes grow outward from the base visit that
 started it. Arc angle is the whole-branch time. The end marker isn't drawn.
 Single and double tags are coloured differently, with the Opening and base
-scenes in grey (see the legend). Hover for name, start (MM:SS from the
+scenes in pastel salmon (see the legend). Hover for name, start (MM:SS from the
 Opening), own length, branch length and tag type. A stats card beside the chart
 shows total time, runs, max depth, % at base, mean and longest scene, and
 single/double tag counts.
