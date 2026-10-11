@@ -28,44 +28,36 @@ then log scenes while it plays. Tables are saved as JSON in `data/`.
 Click a row to seek the video to it. Hotkeys are disabled while typing in a
 field (press Enter to finish editing). "Export CSV" saves the table and downloads it as CSV.
 
-## Flower chart
+## Charts
 
 ```
-pixi run chart data/my-show.json            # writes data/my-show.html
-pixi run chart data/my-show.json -o out.html
+pixi run chart data/my-show.json            # writes data/my-show.html, opens on the timeline
+pixi run sunburst data/my-show.json         # writes data/my-show-sunburst.html, opens on the sunburst
+pixi run site                               # every table in data/ -> data/scamps-shows.html
 ```
 
-Or from Python:
+All three write one standalone HTML page (D3 loads from cdnjs; the markup is
+`src/flower/templates/shows_page.html`, designed to paste into a Squarespace
+Code Block). `-o out.html` sets the output; `pixi run site other-dir/` reads
+another directory. From Python: `show_page(SceneTable.load_json(path), view)`
+or `shows_page([show_data(t), ...])`, with `view` one of `timeline`, `sunburst`, `table`.
 
-```python
-from flower import SceneTable, flower_chart
+The page has stat tiles (show length, runs, deepest scene, % at base, average
+and longest scene, single/double tags), a Run/Tag colour switch and three views:
 
-fig = flower_chart(SceneTable.load_json("data/my-show.json"))
-fig.show()  # or fig.write_html("chart.html")
-```
+- **Timeline**: time along x, one row per level with the base at the bottom.
+  Scenes are rounded bars joined by smooth connectors; a dot on a connector is
+  a single tag, two dots a double. Labels sit above the bars and are cut to
+  fit. Hover highlights the scene's whole run.
+- **Sunburst**: show title and length in the centre; ring 1 is the Opening and
+  each base visit, with each run's scenes growing outward as a petal. Arc angle
+  is branch time. Click a petal to zoom, the centre to zoom out; hovering shows
+  that scene's share of the show in the centre.
+- **Scenes**: the scene table with start, length, level, tag and run.
 
-Time runs along x (MM:SS) and scene level along y. Scenes at the same level are
-flat lines, transitions are bezier arcs, each level has its own pastel colour
-and scene names are annotated.
-
-## Sunburst chart
-
-```
-pixi run sunburst data/my-show.json            # writes data/my-show-sunburst.html
-pixi run sunburst data/my-show.json -o out.html
-```
-
-Or from Python: `sunburst_chart(SceneTable.load_json("data/my-show.json")).show()`.
-
-An interactive time-proportional sunburst. The show title is in the centre;
-ring 1 is the Opening and each base visit in show order (labelled with its
-description), and each run's scenes grow outward from the base visit that
-started it. Arc angle is the whole-branch time. The end marker isn't drawn.
-Single and double tags are coloured differently, with the Opening and base
-scenes in pastel salmon (see the legend). Hover for name, start (MM:SS from the
-Opening), own length, branch length and tag type. A stats card beside the chart
-shows total time, runs, max depth, % at base, mean and longest scene, and
-single/double tag counts.
+Colours are by run (lighter with depth) or by tag, with the Opening and base
+salmon. `site` shows a picker for the shows, newest first; tables that
+fail validation are skipped.
 
 ## Show analysis
 

@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scamps Show Charts</title>
+<style>body { margin: 0; padding: 24px; background: #fff; }</style>
+</head>
+<body>
+<!-- Everything below this line can be pasted into a Squarespace Code Block. -->
+<div id="flw">
+<style>
+#flw {
+  --frame: #87beda; --panel: #ffffff; --ink: #1d2a4d; --ink-2: #44536f; --muted: #7c8698;
+  --frame-ink: #1d2a4d; --frame-muted: #2f4a6e; --line: rgba(29,42,77,.16);
+  --grid: #eceef2; --axis: #cfd4dd; --accent: #f4d03e; --hover: rgba(255,255,255,.3);
+  position: relative; font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  color: var(--frame-ink); background: var(--frame); border-radius: 12px;
+  display: grid; grid-template-columns: 210px minmax(0, 1fr); min-height: 640px;
+  -webkit-font-smoothing: antialiased; line-height: 1.35;
+}
+#flw * { box-sizing: border-box; }
+#flw button { font: inherit; color: inherit; }
+#flw .flw-side { padding: 20px 0; border-right: 1px solid var(--line); }
+#flw .flw-side h3 { margin: 0 20px 10px; font-size: 11px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--frame-muted); font-weight: 700; }
+#flw .flw-show { display: block; width: 100%; text-align: left; border: 0; background: none;
+  padding: 10px 20px; cursor: pointer; border-left: 3px solid transparent; font-size: 15px; }
+#flw .flw-show:hover { background: var(--hover); }
+#flw .flw-show[aria-current="true"] { border-left-color: var(--accent); background: var(--hover); font-weight: 700; }
+#flw .flw-show small { display: block; color: var(--frame-muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+#flw .flw-main { padding: 20px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+#flw .flw-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+#flw .flw-title { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+#flw .flw-title small { font-size: 13px; font-weight: 400; color: var(--frame-muted); margin-left: 10px; }
+#flw .flw-title a { color: var(--frame-ink); font-size: 13px; font-weight: 600; margin-left: 10px; }
+#flw .flw-seg { display: inline-flex; background: rgba(255,255,255,.35); border-radius: 999px; padding: 3px; }
+#flw .flw-seg button { border: 0; background: none; padding: 6px 14px; border-radius: 999px;
+  cursor: pointer; font-size: 14px; color: var(--frame-muted); }
+#flw .flw-seg button[aria-pressed="true"] { background: var(--accent); color: var(--ink); font-weight: 700; }
+#flw .flw-seg.small button { padding: 4px 10px; font-size: 12px; }
+#flw .flw-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 8px; }
+#flw .flw-stat { background: var(--panel); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+#flw .flw-stat .v { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+#flw .flw-stat .l { font-size: 12px; color: var(--muted); margin-top: 2px; }
+#flw .flw-stat .s { font-size: 12px; color: var(--ink-2); font-weight: 600; margin-top: 2px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+#flw .flw-panel { background: var(--panel); border-radius: 12px; padding: 16px; color: var(--ink); }
+#flw .flw-legend-row { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap; margin-bottom: 8px; }
+#flw .flw-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-2); }
+#flw .flw-legend span { display: inline-flex; align-items: center; gap: 6px; }
+#flw .flw-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+#flw .flw-legend svg { overflow: visible; }
+#flw .flw-colour { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+#flw .flw-colour .flw-seg { background: #eef1f5; }
+#flw .flw-colour .flw-seg button { color: var(--ink-2); }
+#flw .flw-plot { overflow-x: auto; }
+#flw .flw-plot svg { display: block; }
+#flw .flw-plot text { font-family: inherit; }
+#flw .flw-tip { position: absolute; pointer-events: none; background: #fff; color: var(--ink);
+  border-radius: 8px; padding: 8px 10px; box-shadow: 0 4px 18px rgba(29,42,77,.18);
+  font-size: 12px; max-width: 260px; opacity: 0; transition: opacity .12s; z-index: 5; }
+#flw .flw-tip .v { font-size: 16px; font-weight: 700; }
+#flw .flw-tip .n { font-weight: 700; margin: 2px 0; }
+#flw .flw-tip .m { color: var(--muted); }
+#flw table { width: 100%; border-collapse: collapse; font-size: 13px; }
+#flw th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); font-weight: 700; padding: 6px 8px; border-bottom: 1px solid var(--axis); }
+#flw td { padding: 7px 8px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+#flw td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+#flw td .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
+#flw .flw-hit { cursor: pointer; }
+#flw .flw-hit:focus { outline: none; }
+#flw .flw-hit:focus-visible { outline: 2px solid var(--ink); }
+#flw.flw-single { grid-template-columns: 1fr; }
+#flw.flw-single .flw-side { display: none; }
+@media (max-width: 720px) {
+  #flw { grid-template-columns: 1fr; }
+  #flw .flw-side { border-right: 0; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; padding: 0; }
+  #flw .flw-side h3 { display: none; }
+  #flw .flw-show { white-space: nowrap; width: auto; border-left: 0; border-bottom: 3px solid transparent; }
+  #flw .flw-show[aria-current="true"] { border-bottom-color: var(--accent); }
+  #flw .flw-main { padding: 14px; }
+}
+</style>
+<nav class="flw-side" aria-label="Shows"><h3>Shows</h3><div class="flw-list"></div></nav>
+<section class="flw-main">
+  <div class="flw-head">
+    <h2 class="flw-title"></h2>
+    <div class="flw-seg flw-views" role="group" aria-label="View">
+      <button data-view="timeline">Timeline</button>
+      <button data-view="sunburst">Sunburst</button>
+      <button data-view="table">Scenes</button>
+    </div>
+  </div>
+  <div class="flw-stats"></div>
+  <div class="flw-panel">
+    <div class="flw-legend-row">
+      <div class="flw-legend"></div>
+      <div class="flw-colour">Colour by
+        <div class="flw-seg small" role="group" aria-label="Colour by">
+          <button data-colour="run">Run</button><button data-colour="tag">Tag</button>
+        </div>
+      </div>
+    </div>
+    <div class="flw-plot"></div>
+  </div>
+  <div class="flw-tip" role="tooltip"></div>
+</section>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+(function () {
+  var SHOWS = __SHOWS__;
+  var RUN = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"];
+  var NEUTRAL = "#f0a090", INK = "#1d2a4d", MUTED = "#7c8698", GRID = "#eceef2", AXIS = "#cfd4dd";
+  var TAG = { single: RUN[0], double: RUN[1] };
+  var FONT = 'Helvetica, "Helvetica Neue", Arial, sans-serif';
+
+  var root = document.getElementById("flw");
+  var $ = function (s) { return root.querySelector(s); };
+  var plot = $(".flw-plot"), tip = $(".flw-tip");
+  var state = { show: 0, view: __VIEW__, colour: "run" };
+  if (SHOWS.length < 2) root.classList.add("flw-single");
+
+  // ---- helpers -------------------------------------------------------------
+  function fmt(s) { s = Math.round(s); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  var ctx = document.createElement("canvas").getContext("2d");
+  function textW(t, size, weight) { ctx.font = (weight || 400) + " " + size + "px " + FONT; return ctx.measureText(t).width; }
+  function fit(t, w, size, weight) {
+    if (textW(t, size, weight) <= w) return t;
+    for (var n = t.length - 1; n > 0; n--) { var s = t.slice(0, n).trimEnd() + "…"; if (textW(s, size, weight) <= w) return s; }
+    return "";
+  }
+  function inkOn(hex) { var c = d3.rgb(hex); var l = (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255; return l > 0.6 ? INK : "#fff"; }
+  function colourOf(sc) {
+    if (state.colour === "tag") return TAG[sc.tag] || NEUTRAL;
+    if (sc.run == null) return NEUTRAL;
+    return d3.interpolateRgb(RUN[sc.run % RUN.length], "#fff")(Math.min(0.5, 0.16 * sc.level));
+  }
+  function runLabel(show, r) { return "Run " + (r + 1) + " · " + show.runs[r].name; }
+  function tagLabel(t) { return t === "single" ? "Single tag" : t === "double" ? "Double tag" : "No tag"; }
+  function levelLabel(l) { return l === 0 ? "Base" : "Level " + l; }
+
+  function showTip(evt, sc, show) {
+    tip.replaceChildren(
+      el("div", "v", fmt(sc.len)),
+      el("div", "n", sc.name),
+      el("div", "m", fmt(sc.start) + " – " + fmt(sc.start + sc.len) + " · " + levelLabel(sc.level)),
+      el("div", "m", (sc.run == null ? "Opening" : runLabel(show, sc.run)) + (sc.tag ? " · " + tagLabel(sc.tag) : ""))
+    );
+    var r = root.getBoundingClientRect(), x, y;
+    if (evt && evt.clientX != null) { x = evt.clientX - r.left; y = evt.clientY - r.top; }
+    else { var b = evt.target.getBoundingClientRect(); x = b.left - r.left + b.width / 2; y = b.top - r.top; }
+    tip.style.opacity = 1;
+    var tw = tip.offsetWidth, th = tip.offsetHeight;
+    tip.style.left = Math.max(8, Math.min(r.width - tw - 8, x + 14)) + "px";
+    tip.style.top = Math.max(8, y - th - 12) + "px";
+  }
+  function hideTip() { tip.style.opacity = 0; }
+
+  // ---- sidebar, header, stats, legend --------------------------------------
+  SHOWS.forEach(function (s, i) {
+    var b = el("button", "flw-show", s.name);
+    if (s.date) b.appendChild(el("small", null, s.date));
+    b.onclick = function () { state.show = i; render(); };
+    $(".flw-list").appendChild(b);
+  });
+  root.querySelectorAll("[data-view]").forEach(function (b) { b.onclick = function () { state.view = b.dataset.view; render(); }; });
+  root.querySelectorAll("[data-colour]").forEach(function (b) { b.onclick = function () { state.colour = b.dataset.colour; render(); }; });
+
+  function renderChrome(show) {
+    root.querySelectorAll(".flw-show").forEach(function (b, i) { b.setAttribute("aria-current", i === state.show); });
+    root.querySelectorAll("[data-view]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.view === state.view); });
+    root.querySelectorAll("[data-colour]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.colour === state.colour); });
+    var t = $(".flw-title"); t.replaceChildren(document.createTextNode(show.name));
+    if (show.date) t.appendChild(el("small", null, show.date));
+    if (show.video) { var a = el("a", null, "Watch ↗"); a.href = show.video; a.target = "_blank"; a.rel = "noopener"; t.appendChild(a); }
+
+    var st = show.stats, tiles = [
+      [fmt(st.total), "Show length"], [st.runs, "Runs"], [levelLabel(st.maxDepth), "Deepest scene"],
+      [Math.round(st.basePct) + "%", "Time at base"], [fmt(st.meanScene), "Average scene"],
+      [fmt(st.longestLen), "Longest scene", st.longestName], [st.single + " \u00b7 " + st.double, "Single \u00b7 double tags"]
+    ];
+    $(".flw-stats").replaceChildren.apply($(".flw-stats"), tiles.map(function (t) {
+      var d = el("div", "flw-stat"); d.appendChild(el("div", "v", String(t[0]))); d.appendChild(el("div", "l", t[1]));
+      if (t[2]) { var sub = el("div", "s", t[2]); sub.title = t[2]; d.appendChild(sub); } return d;
+    }));
+
+    var lg = $(".flw-legend"), items = [];
+    if (state.colour === "run") {
+      items.push([NEUTRAL, "Opening"]);
+      show.runs.forEach(function (r, i) { items.push([RUN[i % RUN.length], runLabel(show, i)]); });
+    } else {
+      items.push([TAG.single, "Single tag"], [TAG.double, "Double tag"], [NEUTRAL, "Base / opening"]);
+    }
+    lg.replaceChildren.apply(lg, items.map(function (it) {
+      var s = el("span"); var i = el("i"); i.style.background = it[0]; s.appendChild(i); s.appendChild(document.createTextNode(it[1])); return s;
+    }));
+    if (state.view === "timeline") {
+      var g = el("span");
+      g.innerHTML = '<svg width="34" height="12"><circle cx="5" cy="6" r="4" fill="' + INK + '"/><circle cx="20" cy="6" r="4" fill="' + INK + '"/><circle cx="29" cy="6" r="4" fill="' + INK + '"/></svg>';
+      g.appendChild(document.createTextNode("Tag in: single · double"));
+      lg.appendChild(g);
+    }
+  }
+
+  // ---- timeline ------------------------------------------------------------
+  function drawTimeline(show) {
+    var W = Math.max(640, plot.clientWidth), m = { l: 64, r: 16, t: 34, b: 34 }, rowH = 66;
+    var D = show.maxDepth, H = m.t + (D + 1) * rowH + m.b;
+    var x = d3.scaleLinear().domain([0, show.total]).range([m.l, W - m.r]);
+    var y = function (lv) { return m.t + (D - lv) * rowH + rowH / 2; };
+    var scenes = show.scenes;
+    var svg = d3.select(plot).append("svg").attr("width", W).attr("height", H)
+      .attr("role", "img").attr("aria-label", "Timeline of " + show.name);
+
+    var step = show.total <= 900 ? 60 : show.total <= 2100 ? 120 : 300;
+    var ticks = d3.range(0, show.total + 1, step);
+    var grid = svg.append("g");
+    grid.selectAll("line").data(ticks).join("line")
+      .attr("x1", x).attr("x2", x).attr("y1", m.t - 18).attr("y2", H - m.b + 4).attr("stroke", GRID);
+    grid.selectAll("text").data(ticks).join("text")
+      .attr("x", x).attr("y", H - m.b + 20).attr("text-anchor", "middle").attr("font-size", 11)
+      .attr("fill", MUTED).style("font-variant-numeric", "tabular-nums").text(fmt);
+    var levels = d3.range(0, D + 1);
+    grid.selectAll("line.row").data(levels).join("line").attr("class", "row")
+      .attr("x1", m.l).attr("x2", W - m.r).attr("y1", y).attr("y2", y).attr("stroke", GRID);
+    grid.selectAll("text.row").data(levels).join("text").attr("class", "row")
+      .attr("x", m.l - 12).attr("y", function (l) { return y(l) + 4; }).attr("text-anchor", "end")
+      .attr("font-size", 11).attr("font-weight", 700).attr("fill", MUTED).text(levelLabel);
+
+    var links = d3.range(1, scenes.length).map(function (k) { return [scenes[k - 1], scenes[k]]; });
+    svg.append("g").attr("fill", "none").attr("stroke", AXIS).attr("stroke-width", 2).attr("stroke-linecap", "round")
+      .selectAll("path").data(links).join("path").attr("class", "lnk")
+      .attr("d", function (p) {
+        var xx = x(p[1].start), y1 = y(p[0].level), y2 = y(p[1].level);
+        return "M" + (xx - 10) + "," + y1 + "C" + (xx + 2) + "," + y1 + " " + (xx - 2) + "," + y2 + " " + (xx + 10) + "," + y2;
+      });
+
+    var bars = svg.append("g").selectAll("rect").data(scenes).join("rect").attr("class", "bar")
+      .attr("x", function (d) { return x(d.start) + 1; }).attr("y", function (d) { return y(d.level) - 10; })
+      .attr("width", function (d) { return Math.max(2, x(d.start + d.len) - x(d.start) - 2); }).attr("height", 20)
+      .attr("rx", 4).attr("fill", colourOf);
+
+    var tagged = scenes.filter(function (d) { return d.tag; });
+    var glyphs = svg.append("g").selectAll("g").data(tagged).join("g").attr("class", "tag")
+      .attr("transform", function (d) {
+        var prev = scenes[scenes.indexOf(d) - 1];
+        return "translate(" + x(d.start) + "," + (y(prev.level) + y(d.level)) / 2 + ")";
+      });
+    glyphs.each(function (d) {
+      var g = d3.select(this), xs = d.tag === "double" ? [-5, 5] : [0];
+      g.selectAll("circle").data(xs).join("circle").attr("cx", function (v) { return v; }).attr("r", 4.5)
+        .attr("fill", INK).attr("stroke", "#fff").attr("stroke-width", 2);
+    });
+
+    // Labels above bars; each runs until the next label in its row, then truncates.
+    var byRow = d3.group(scenes, function (d) { return d.level; });
+    var labels = [];
+    byRow.forEach(function (row) {
+      row.sort(function (a, b) { return a.start - b.start; });
+      row.forEach(function (d, k) {
+        var lx = x(d.start) + 6, limit = (k + 1 < row.length ? x(row[k + 1].start) : W - m.r) - lx - 8;
+        var t = limit >= 30 ? fit(d.name, limit, 12, 600) : "";
+        if (t) labels.push({ d: d, x: lx, t: t });
+      });
+    });
+    var lab = svg.append("g").selectAll("text").data(labels).join("text").attr("class", "lab")
+      .attr("x", function (l) { return l.x; }).attr("y", function (l) { return y(l.d.level) - 17; })
+      .attr("font-size", 12).attr("font-weight", 600).attr("fill", INK).text(function (l) { return l.t; });
+
+    function focusRun(d) {
+      var same = function (o) { return o.run === d.run; };
+      bars.transition().duration(120).attr("opacity", function (o) { return d == null || same(o) ? 1 : 0.18; });
+      lab.transition().duration(120).attr("opacity", function (l) { return d == null || same(l.d) ? 1 : 0.25; });
+      glyphs.transition().duration(120).attr("opacity", function (o) { return d == null || same(o) ? 1 : 0.2; });
+    }
+    svg.append("g").selectAll("rect").data(scenes).join("rect").attr("class", "flw-hit")
+      .attr("x", function (d) { return x(d.start); }).attr("y", function (d) { return y(d.level) - rowH / 2 + 4; })
+      .attr("width", function (d) { return Math.max(8, x(d.start + d.len) - x(d.start)); }).attr("height", rowH - 8)
+      .attr("fill", "transparent").attr("tabindex", 0).attr("aria-label", function (d) { return d.name + ", " + fmt(d.len); })
+      .on("pointerenter focus", function (e, d) { focusRun(d); showTip(e, d, show); })
+      .on("pointermove", function (e, d) { showTip(e, d, show); })
+      .on("pointerleave blur", function () { focusRun(null); hideTip(); });
+  }
+
+  // ---- sunburst ------------------------------------------------------------
+  function drawSunburst(show) {
+    var W = plot.clientWidth, size = Math.max(320, Math.min(W, 640)), R = size / 2 - 6;
+    var byId = new Map(show.scenes.map(function (s) { return [s.i, Object.assign({ children: [] }, s)]; }));
+    var top = { name: show.name, children: [] };
+    byId.forEach(function (n) { (n.parent == null ? top.children : byId.get(n.parent).children).push(n); });
+    var h = d3.hierarchy(top).sum(function (d) { return d.len || 0; });
+    var depthUnits = h.height + 1;
+    d3.partition().size([2 * Math.PI, depthUnits])(h);
+    h.each(function (d) { d.current = d; });
+    var rc = R * 0.27, ring = (R - rc) / (depthUnits - 1);
+    var rad = function (v) { return v <= 1 ? v * rc : rc + (v - 1) * ring; };
+    var arc = d3.arc().startAngle(function (d) { return d.x0; }).endAngle(function (d) { return d.x1; })
+      .padAngle(function (d) { return Math.min((d.x1 - d.x0) / 2, 0.01); }).padRadius(R)
+      .innerRadius(function (d) { return rad(d.y0) + 1; }).outerRadius(function (d) { return Math.max(rad(d.y0) + 1, rad(d.y1) - 1); })
+      .cornerRadius(4);
+    var visible = function (d) { return d.y1 <= depthUnits && d.y0 >= 1 && d.x1 - d.x0 > 0.0005; };
+
+    var svg = d3.select(plot).append("svg").attr("viewBox", [-size / 2, -size / 2, size, size])
+      .attr("width", size).attr("height", size).style("margin", "0 auto")
+      .attr("role", "img").attr("aria-label", "Sunburst of " + show.name);
+    var nodes = h.descendants().slice(1);
+    var path = svg.append("g").selectAll("path").data(nodes).join("path").attr("class", "flw-hit")
+      .attr("fill", function (d) { return colourOf(d.data); })
+      .attr("fill-opacity", function (d) { return visible(d.current) ? 1 : 0; })
+      .attr("pointer-events", function (d) { return visible(d.current) ? "auto" : "none"; })
+      .attr("tabindex", 0).attr("aria-label", function (d) { return d.data.name + ", " + fmt(d.value); })
+      .attr("d", function (d) { return arc(d.current); });
+
+    var label = svg.append("g").attr("pointer-events", "none").selectAll("text").data(nodes).join("text")
+      .attr("font-size", 11).attr("font-weight", 600).attr("dy", "0.35em").attr("text-anchor", "middle");
+    function placeLabel(d) {
+      var c = d.current, a = (c.x0 + c.x1) / 2, r0 = rad(c.y0), r1 = rad(c.y1), rm = (r0 + r1) / 2;
+      var span = c.x1 - c.x0, inner = r0 + 4, outer = r1 - 4;
+      var tang = Math.min(2 * Math.sqrt(Math.max(0, outer * outer - rm * rm)), 2 * rm * Math.sin(Math.min(span, Math.PI) / 2)) - 10;
+      var radial = outer - inner - 6, thick = Math.min(r1 - r0, span * rm);
+      if (!visible(c) || thick < 16) return { t: "" };
+      var useTang = tang >= radial, deg = a * 180 / Math.PI;
+      var t = fit(d.data.name, useTang ? tang : radial, 11, 600);
+      if (t.length < 5 && t !== d.data.name) return { t: "" };
+      var tr = "rotate(" + (deg - 90) + ") translate(" + rm + ",0) " +
+        (useTang ? (deg > 90 && deg < 270 ? "rotate(-90)" : "rotate(90)") : (deg < 180 ? "rotate(0)" : "rotate(180)"));
+      return { t: t, tr: tr };
+    }
+    function updateLabels() {
+      label.each(function (d) { var p = placeLabel(d); d3.select(this).text(p.t).attr("transform", p.tr || null).attr("fill", inkOn(colourOf(d.data))); });
+    }
+    updateLabels();
+
+    var centre = svg.append("g");
+    var disc = centre.append("circle").attr("r", rc - 2).attr("fill", "#f3f6fa").attr("class", "flw-hit")
+      .attr("tabindex", 0).attr("aria-label", "Zoom out");
+    var ct = centre.append("text").attr("text-anchor", "middle").attr("pointer-events", "none").attr("fill", INK);
+    function wrap(t, w, size, weight) {
+      var words = t.split(/\s+/), lines = [""];
+      words.forEach(function (wd) {
+        var cur = lines[lines.length - 1], next = cur ? cur + " " + wd : wd;
+        if (textW(next, size, weight) <= w || !cur) lines[lines.length - 1] = next; else lines.push(wd);
+      });
+      if (lines.length > 3) { lines = lines.slice(0, 3); lines[2] = fit(lines[2] + "…", w, size, weight); }
+      return lines.map(function (l) { return fit(l, w, size, weight); });
+    }
+    function setCentre(title, big, small) {
+      var w = rc * 1.6, lines = wrap(title, w, 12, 700), rows = [];
+      lines.forEach(function (l) { rows.push([l, 12, 700, INK]); });
+      rows.push([big, 22, 700, INK]);
+      if (small) rows.push([small, 11, 400, MUTED]);
+      var hgt = rows.reduce(function (s, r) { return s + r[1] * 1.25; }, 0), yy = -hgt / 2;
+      ct.selectAll("tspan").data(rows).join("tspan").attr("x", 0)
+        .attr("y", function (r) { yy += r[1] * 1.25; return yy - r[1] * 0.3; })
+        .attr("font-size", function (r) { return r[1]; }).attr("font-weight", function (r) { return r[2]; })
+        .attr("fill", function (r) { return r[3]; }).text(function (r) { return r[0]; });
+    }
+    var focus = h;
+    function resetCentre() {
+      if (focus === h) setCentre(show.name, fmt(show.total), "Click a petal to zoom");
+      else setCentre(focus.data.name, fmt(focus.value), "Click centre to zoom out");
+    }
+    resetCentre();
+
+    function highlight(d) {
+      var keep = d ? new Set(d.ancestors().concat(d.descendants())) : null;
+      path.attr("opacity", function (o) { return !keep || keep.has(o) ? 1 : 0.35; });
+    }
+    path.on("pointerenter focus", function (e, d) {
+        highlight(d); showTip(e, Object.assign({}, d.data, { len: d.data.len }), show);
+        setCentre(d.data.name, fmt(d.value), Math.round(100 * d.value / show.total) + "% of the show");
+      })
+      .on("pointermove", function (e, d) { showTip(e, d.data, show); })
+      .on("pointerleave blur", function () { highlight(null); hideTip(); resetCentre(); })
+      .on("click", function (e, d) { if (d.children) zoom(d); })
+      .on("keydown", function (e, d) { if ((e.key === "Enter" || e.key === " ") && d.children) { e.preventDefault(); zoom(d); } });
+    disc.on("click", function () { if (focus.parent) zoom(focus.parent); })
+      .on("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && focus.parent) { e.preventDefault(); zoom(focus.parent); } });
+
+    function zoom(p) {
+      focus = p;
+      h.each(function (d) {
+        d.target = {
+          x0: Math.max(0, Math.min(1, (d.x0 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
+          x1: Math.max(0, Math.min(1, (d.x1 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
+          y0: Math.max(0, d.y0 - p.depth), y1: Math.max(0, d.y1 - p.depth)
+        };
+      });
+      var t = svg.transition().duration(550);
+      path.transition(t).tween("data", function (d) {
+          var i = d3.interpolate(d.current, d.target);
+          return function (tt) { d.current = i(tt); };
+        })
+        .filter(function (d) { return +this.getAttribute("fill-opacity") || visible(d.target); })
+        .attr("fill-opacity", function (d) { return visible(d.target) ? 1 : 0; })
+        .attr("pointer-events", function (d) { return visible(d.target) ? "auto" : "none"; })
+        .attrTween("d", function (d) { return function () { return arc(d.current); }; });
+      label.attr("opacity", 0);
+      t.on("end", function () { updateLabels(); label.transition().duration(150).attr("opacity", 1); });
+      resetCentre();
+    }
+  }
+
+  // ---- scenes table --------------------------------------------------------
+  function drawTable(show) {
+    var t = el("table"), head = el("tr");
+    ["Start", "Scene", "Length", "Level", "Tag", "Run"].forEach(function (c) { head.appendChild(el("th", null, c)); });
+    t.appendChild(el("thead")).appendChild(head);
+    var body = t.appendChild(el("tbody"));
+    show.scenes.forEach(function (s) {
+      var tr = el("tr");
+      tr.appendChild(el("td", "num", fmt(s.start)));
+      var name = el("td"); name.style.paddingLeft = (8 + 16 * s.level) + "px";
+      var sw = el("span", "sw"); sw.style.background = colourOf(s); name.appendChild(sw);
+      name.appendChild(document.createTextNode(s.name)); tr.appendChild(name);
+      tr.appendChild(el("td", "num", fmt(s.len)));
+      tr.appendChild(el("td", null, levelLabel(s.level)));
+      tr.appendChild(el("td", null, s.tag ? tagLabel(s.tag) : "–"));
+      tr.appendChild(el("td", null, s.run == null ? "Opening" : "Run " + (s.run + 1)));
+      body.appendChild(tr);
+    });
+    plot.appendChild(t);
+  }
+
+  // ---- render --------------------------------------------------------------
+  var lastW = 0;
+  function render() {
+    var show = SHOWS[state.show];
+    renderChrome(show);
+    hideTip();
+    plot.replaceChildren();
+    lastW = plot.clientWidth;
+    if (state.view === "timeline") drawTimeline(show);
+    else if (state.view === "sunburst") drawSunburst(show);
+    else drawTable(show);
+  }
+  if (window.ResizeObserver) {
+    var pending = false;
+    new ResizeObserver(function () {
+      if (pending) return; pending = true;
+      requestAnimationFrame(function () { pending = false; if (Math.abs(plot.clientWidth - lastW) > 4) render(); });
+    }).observe(plot);
+  }
+  render();
+})();
+</script>
+</div>
+</body>
+</html>
