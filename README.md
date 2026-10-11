@@ -56,7 +56,7 @@ and longest scene, single/double tags), a Run/Tag colour switch and three views:
 - **Scenes**: the scene table with start, length, level, tag and run.
 
 Colours are by run (lighter with depth) or by tag, with the Opening and base
-neutral grey. `site` shows a picker for the shows, newest first; tables that
+salmon. `site` shows a picker for the shows, newest first; tables that
 fail validation are skipped.
 
 ## Show analysis

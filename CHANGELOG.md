@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   level rows, smooth connectors, tag glyphs, truncated labels and run
   highlighting on hover; sunburst with the show in the centre, runs as petals,
   labels inside arcs, click to zoom and the hovered scene's share of the show
-  in the centre; stat tiles; a scenes table view; colour by run or tag.
+  in the centre; stat tiles; a scenes table view; colour by run or tag, with the
+  Opening and base visits in salmon.
 - `flower.show_data`, `flower.show_page` and `flower.shows_page`.
 - `pixi run site [data_dir] [-o out.html]`: one page with a show picker for
   every scene table in `data/` (default output `data/scamps-shows.html`).
