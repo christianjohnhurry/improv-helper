@@ -1,8 +1,9 @@
 """Flower: tools for building and exporting improv scene tables."""
 
-__version__ = "0.5.0"  # Semantic Versioning; keep in sync with VERSION and CHANGELOG.md
+__version__ = "0.6.0"  # Semantic Versioning; keep in sync with VERSION and CHANGELOG.md
 
 from flower.analysis import Run, SceneNode, ShowAnalysis, ShowStats, analyse, scene_lengths
+from flower.page import show_data, show_page, shows_page
 from flower.scene_table import (
     TAG_TYPES,
     Scene,
@@ -12,8 +13,6 @@ from flower.scene_table import (
     format_timestamp,
     parse_timestamp,
 )
-from flower.sunburst import sunburst_chart
-from flower.visualise import flower_chart
 
 __all__ = [
     "__version__",
@@ -22,6 +21,9 @@ __all__ = [
     "ShowAnalysis",
     "ShowStats",
     "analyse",
+    "show_data",
+    "show_page",
+    "shows_page",
     "scene_lengths",
     "TAG_TYPES",
     "Scene",
@@ -29,7 +31,5 @@ __all__ = [
     "ShowMetadata",
     "ValidationError",
     "format_timestamp",
-    "flower_chart",
-    "sunburst_chart",
     "parse_timestamp",
 ]

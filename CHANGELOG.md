@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-11
+
+### Added
+- Chart pages are now D3/HTML built from `flower/templates/shows_page.html`
+  (ported from the Squarespace page): timeline with rounded scene bars on
+  level rows, smooth connectors, tag glyphs, truncated labels and run
+  highlighting on hover; sunburst with the show in the centre, runs as petals,
+  labels inside arcs, click to zoom and the hovered scene's share of the show
+  in the centre; stat tiles; a scenes table view; colour by run or tag.
+- `flower.show_data`, `flower.show_page` and `flower.shows_page`.
+- `pixi run site [data_dir] [-o out.html]`: one page with a show picker for
+  every scene table in `data/` (default output `data/scamps-shows.html`).
+
+### Changed
+- `pixi run chart` and `pixi run sunburst` write the same page, opened on the
+  timeline or the sunburst. Default output of `chart` is unchanged;
+  `sunburst` still writes `<table>-sunburst.html`.
+
+### Removed
+- **Breaking:** `flower.flower_chart` and `flower.sunburst_chart` (Plotly) and
+  the `plotly` dependency.
+
 ## [0.5.0] - 2026-10-10
 
 ### Added
@@ -73,7 +95,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pytest tests.
 - `linux-aarch64` and `osx-arm64` pixi platforms.
 
-[Unreleased]: https://github.com/christianjohnhurry/improv-helper/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/christianjohnhurry/improv-helper/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/christianjohnhurry/improv-helper/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/christianjohnhurry/improv-helper/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/christianjohnhurry/improv-helper/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/christianjohnhurry/improv-helper/compare/v0.3.0...v0.3.1

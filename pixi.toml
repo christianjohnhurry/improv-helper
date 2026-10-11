@@ -9,6 +9,7 @@ test = "pytest"
 scenes = "python -m flower.server"
 chart = "python -m flower.chart"
 sunburst = "python -m flower.sunburst_cli"
+site = "python -m flower.site"
 
 [dependencies]
 numpy = ">=2.3.3,<3"
@@ -19,7 +20,6 @@ python = ">=3.11"
 fastapi = ">=0.143.0,<0.144"
 uvicorn = ">=0.54.0,<0.55"
 httpx = ">=0.28.1,<0.29"
-plotly = ">=6,<7"
 
 [pypi-dependencies]
 flower = { path = ".", editable = true }
