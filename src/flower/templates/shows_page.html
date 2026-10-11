@@ -29,6 +29,7 @@
   padding: 10px 20px; cursor: pointer; border-left: 3px solid transparent; font-size: 15px; }
 #flw .flw-show:hover { background: var(--hover); }
 #flw .flw-show[aria-current="true"] { border-left-color: var(--accent); background: var(--hover); font-weight: 700; }
+#flw .flw-sep { border: 0; border-top: 1px solid var(--line); margin: 6px 20px; }
 #flw .flw-show small { display: block; color: var(--frame-muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
 #flw .flw-main { padding: 20px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 #flw .flw-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -90,12 +91,14 @@
   #flw { grid-template-columns: 1fr; }
   #flw .flw-side { border-right: 0; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; padding: 0; }
   #flw .flw-side h3 { display: none; }
+  #flw .flw-list { display: flex; align-items: stretch; }
+  #flw .flw-sep { width: 0; height: auto; border-top: 0; border-left: 1px solid var(--line); margin: 8px 4px; }
   #flw .flw-show { white-space: nowrap; width: auto; border-left: 0; border-bottom: 3px solid transparent; }
   #flw .flw-show[aria-current="true"] { border-bottom-color: var(--accent); }
   #flw .flw-main { padding: 14px; }
 }
 </style>
-<nav class="flw-side" aria-label="Shows"><h3>Shows</h3><div class="flw-list"></div></nav>
+<nav class="flw-side" aria-label="Data"><h3>Data</h3><div class="flw-list"></div></nav>
 <section class="flw-main">
   <div class="flw-head">
     <h2 class="flw-title"></h2>
@@ -187,6 +190,7 @@
     cb.dataset.i = -1; cb.appendChild(el("small", null, "All " + SHOWS.length + " side by side"));
     cb.onclick = function () { state.show = -1; render(); };
     $(".flw-list").appendChild(cb);
+    $(".flw-list").appendChild(el("hr", "flw-sep"));
   }
   SHOWS.forEach(function (s, i) {
     var b = el("button", "flw-show", s.name);
