@@ -34,13 +34,14 @@ field (press Enter to finish editing). "Export CSV" saves the table and download
 pixi run chart data/my-show.json            # writes data/my-show.html, opens on the timeline
 pixi run sunburst data/my-show.json         # writes data/my-show-sunburst.html, opens on the sunburst
 pixi run site                               # every table in data/ -> data/scamps-shows.html
+pixi run site --view compare               # same page, opened on the comparison (needs 2+ shows)
 ```
 
 All three write one standalone HTML page (D3 loads from cdnjs; the markup is
 `src/flower/templates/shows_page.html`, designed to paste into a Squarespace
 Code Block). `-o out.html` sets the output; `pixi run site other-dir/` reads
 another directory. From Python: `show_page(SceneTable.load_json(path), view)`
-or `shows_page([show_data(t), ...])`, with `view` one of `timeline`, `sunburst`, `table`.
+or `shows_page([show_data(t), ...])`, with `view` one of `timeline`, `sunburst`, `table`, `compare`.
 
 The page has stat tiles (show length, runs, deepest scene, % at base, average
 and longest scene, single/double tags), a Run/Tag colour switch and three views:
@@ -58,6 +59,17 @@ and longest scene, single/double tags), a Run/Tag colour switch and three views:
 Colours are by run (lighter with depth) or by tag, with the Opening and base
 salmon. `site` shows a picker for the shows, newest first; tables that
 fail validation are skipped.
+
+With two or more shows, **Compare shows** (top of the picker) puts them side by
+side. Every show is timed from its own Opening at 0:00, so a recording that
+starts mid-video lines up with the rest:
+
+- **Stats**: one row per show (date, length, scenes, runs, deepest level, % at
+  base, average and longest scene, single/double tags); click a header to sort
+  (newest first by default), a row to open that show.
+- **Timelines**: every show stacked on one shared time axis and level scale.
+- **Scene lengths**: a strip per show, one dot per scene, with the average marked.
+- **Trends**: key stats over show date (firms up as more shows are logged).
 
 ## Show analysis
 

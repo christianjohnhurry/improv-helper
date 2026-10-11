@@ -20,6 +20,7 @@
   -webkit-font-smoothing: antialiased; line-height: 1.35;
 }
 #flw * { box-sizing: border-box; }
+#flw [hidden] { display: none !important; }
 #flw button { font: inherit; color: inherit; }
 #flw .flw-side { padding: 20px 0; border-right: 1px solid var(--line); }
 #flw .flw-side h3 { margin: 0 20px 10px; font-size: 11px; letter-spacing: .1em;
@@ -70,6 +71,16 @@
 #flw td { padding: 7px 8px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
 #flw td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 #flw td .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
+#flw th button { all: unset; cursor: pointer; text-transform: inherit; letter-spacing: inherit; font-weight: inherit; }
+#flw th button:focus-visible { outline: 2px solid var(--ink); }
+#flw th[aria-sort="ascending"] button::after { content: " \25B2"; font-size: 9px; }
+#flw th[aria-sort="descending"] button::after { content: " \25BC"; font-size: 9px; }
+#flw th.num, #flw td.num { text-align: right; }
+#flw tr.flw-pick { cursor: pointer; }
+#flw tr.flw-pick:hover td { background: #f3f6fa; }
+#flw .flw-note { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
+#flw .flw-trends { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+#flw .flw-trends h4 { margin: 0 0 2px; font-size: 12px; color: var(--ink-2); font-weight: 700; }
 #flw .flw-hit { cursor: pointer; }
 #flw .flw-hit:focus { outline: none; }
 #flw .flw-hit:focus-visible { outline: 2px solid var(--ink); }
@@ -88,6 +99,12 @@
 <section class="flw-main">
   <div class="flw-head">
     <h2 class="flw-title"></h2>
+    <div class="flw-seg flw-cviews" role="group" aria-label="Comparison view">
+      <button data-cview="table">Stats</button>
+      <button data-cview="timelines">Timelines</button>
+      <button data-cview="lengths">Scene lengths</button>
+      <button data-cview="trends">Trends</button>
+    </div>
     <div class="flw-seg flw-views" role="group" aria-label="View">
       <button data-view="timeline">Timeline</button>
       <button data-view="sunburst">Sunburst</button>
@@ -120,7 +137,8 @@
   var root = document.getElementById("flw");
   var $ = function (s) { return root.querySelector(s); };
   var plot = $(".flw-plot"), tip = $(".flw-tip");
-  var state = { show: 0, view: __VIEW__, colour: "run" };
+  var state = { show: 0, view: __VIEW__, cview: "table", colour: "run" };
+  if (state.view === "compare") { state.show = -1; state.view = "timeline"; }
   if (SHOWS.length < 2) root.classList.add("flw-single");
 
   // ---- helpers -------------------------------------------------------------
@@ -144,12 +162,15 @@
   function levelLabel(l) { return l === 0 ? "Base" : "Level " + l; }
 
   function showTip(evt, sc, show) {
-    tip.replaceChildren(
+    placeTip(evt, [
       el("div", "v", fmt(sc.len)),
       el("div", "n", sc.name),
       el("div", "m", fmt(sc.start) + " – " + fmt(sc.start + sc.len) + " · " + levelLabel(sc.level)),
       el("div", "m", (sc.run == null ? "Opening" : runLabel(show, sc.run)) + (sc.tag ? " · " + tagLabel(sc.tag) : ""))
-    );
+    ]);
+  }
+  function placeTip(evt, nodes) {
+    tip.replaceChildren.apply(tip, nodes);
     var r = root.getBoundingClientRect(), x, y;
     if (evt && evt.clientX != null) { x = evt.clientX - r.left; y = evt.clientY - r.top; }
     else { var b = evt.target.getBoundingClientRect(); x = b.left - r.left + b.width / 2; y = b.top - r.top; }
@@ -161,20 +182,39 @@
   function hideTip() { tip.style.opacity = 0; }
 
   // ---- sidebar, header, stats, legend --------------------------------------
+  if (SHOWS.length > 1) {
+    var cb = el("button", "flw-show", "Compare shows");
+    cb.dataset.i = -1; cb.appendChild(el("small", null, "All " + SHOWS.length + " side by side"));
+    cb.onclick = function () { state.show = -1; render(); };
+    $(".flw-list").appendChild(cb);
+  }
   SHOWS.forEach(function (s, i) {
     var b = el("button", "flw-show", s.name);
+    b.dataset.i = i;
     if (s.date) b.appendChild(el("small", null, s.date));
     b.onclick = function () { state.show = i; render(); };
     $(".flw-list").appendChild(b);
   });
   root.querySelectorAll("[data-view]").forEach(function (b) { b.onclick = function () { state.view = b.dataset.view; render(); }; });
+  root.querySelectorAll("[data-cview]").forEach(function (b) { b.onclick = function () { state.cview = b.dataset.cview; render(); }; });
   root.querySelectorAll("[data-colour]").forEach(function (b) { b.onclick = function () { state.colour = b.dataset.colour; render(); }; });
 
   function renderChrome(show) {
-    root.querySelectorAll(".flw-show").forEach(function (b, i) { b.setAttribute("aria-current", i === state.show); });
+    var cmp = state.show < 0;
+    root.querySelectorAll(".flw-show").forEach(function (b) { b.setAttribute("aria-current", +b.dataset.i === state.show); });
+    $(".flw-views").hidden = cmp; $(".flw-cviews").hidden = !cmp; $(".flw-stats").hidden = cmp;
+    $(".flw-colour").hidden = cmp && (state.cview === "table" || state.cview === "trends");
+    root.querySelectorAll("[data-cview]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.cview === state.cview); });
     root.querySelectorAll("[data-view]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.view === state.view); });
     root.querySelectorAll("[data-colour]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.colour === state.colour); });
-    var t = $(".flw-title"); t.replaceChildren(document.createTextNode(show.name));
+    var t = $(".flw-title");
+    if (cmp) {
+      t.replaceChildren(document.createTextNode("Compare shows"));
+      t.appendChild(el("small", null, SHOWS.length + " shows · each timed from its Opening at 0:00"));
+      renderLegend(null);
+      return;
+    }
+    t.replaceChildren(document.createTextNode(show.name));
     if (show.date) t.appendChild(el("small", null, show.date));
     if (show.video) { var a = el("a", null, "Watch ↗"); a.href = show.video; a.target = "_blank"; a.rel = "noopener"; t.appendChild(a); }
 
@@ -188,17 +228,22 @@
       if (t[2]) { var sub = el("div", "s", t[2]); sub.title = t[2]; d.appendChild(sub); } return d;
     }));
 
+    renderLegend(show);
+  }
+
+  function renderLegend(show) {
     var lg = $(".flw-legend"), items = [];
     if (state.colour === "run") {
       items.push([NEUTRAL, "Opening"]);
-      show.runs.forEach(function (r, i) { items.push([RUN[i % RUN.length], runLabel(show, i)]); });
+      if (show) show.runs.forEach(function (r, i) { items.push([RUN[i % RUN.length], runLabel(show, i)]); });
+      else for (var k = 0; k < d3.max(SHOWS, function (s) { return s.runs.length; }); k++) items.push([RUN[k % RUN.length], "Run " + (k + 1)]);
     } else {
       items.push([TAG.single, "Single tag"], [TAG.double, "Double tag"], [NEUTRAL, "Base / opening"]);
     }
     lg.replaceChildren.apply(lg, items.map(function (it) {
       var s = el("span"); var i = el("i"); i.style.background = it[0]; s.appendChild(i); s.appendChild(document.createTextNode(it[1])); return s;
     }));
-    if (state.view === "timeline") {
+    if (show ? state.view === "timeline" : state.cview === "timelines") {
       var g = el("span");
       g.innerHTML = '<svg width="34" height="12"><circle cx="5" cy="6" r="4" fill="' + INK + '"/><circle cx="20" cy="6" r="4" fill="' + INK + '"/><circle cx="29" cy="6" r="4" fill="' + INK + '"/></svg>';
       g.appendChild(document.createTextNode("Tag in: single · double"));
@@ -426,6 +471,207 @@
     plot.appendChild(t);
   }
 
+  // ---- comparison ----------------------------------------------------------
+  var COLS = [
+    ["name", "Show", function (s) { return s.name; }, null],
+    ["date", "Date", function (s) { return s.date || ""; }, null],
+    ["total", "Length", function (s) { return s.stats.total; }, fmt],
+    ["count", "Scenes", function (s) { return s.stats.count; }, String],
+    ["runs", "Runs", function (s) { return s.stats.runs; }, String],
+    ["depth", "Deepest", function (s) { return s.stats.maxDepth; }, levelLabel],
+    ["base", "At base", function (s) { return s.stats.basePct; }, function (v) { return Math.round(v) + "%"; }],
+    ["mean", "Avg scene", function (s) { return s.stats.meanScene; }, fmt],
+    ["longest", "Longest", function (s) { return s.stats.longestLen; }, fmt],
+    ["single", "Single", function (s) { return s.stats.single; }, String],
+    ["double", "Double", function (s) { return s.stats.double; }, String]
+  ];
+  var sort = { key: "date", dir: -1 };
+
+  function drawCompareTable() {
+    var col = COLS.filter(function (c) { return c[0] === sort.key; })[0];
+    var rows = SHOWS.map(function (s, i) { return { s: s, i: i, v: col[2](s) }; });
+    rows.sort(function (a, b) { return (a.v < b.v ? -1 : a.v > b.v ? 1 : 0) * sort.dir || a.i - b.i; });
+    var t = el("table"), head = el("tr");
+    COLS.forEach(function (c) {
+      var th = el("th", c[3] ? "num" : null), b = el("button", null, c[1]);
+      th.setAttribute("aria-sort", c[0] === sort.key ? (sort.dir > 0 ? "ascending" : "descending") : "none");
+      b.onclick = function () {
+        sort = { key: c[0], dir: c[0] === sort.key ? -sort.dir : (c[3] || c[0] === "date" ? -1 : 1) };
+        render();
+      };
+      th.appendChild(b); head.appendChild(th);
+    });
+    t.appendChild(el("thead")).appendChild(head);
+    var body = t.appendChild(el("tbody"));
+    rows.forEach(function (r) {
+      var tr = el("tr", "flw-pick");
+      tr.title = "Open " + r.s.name; tr.tabIndex = 0;
+      var open = function () { state.show = r.i; render(); };
+      tr.onclick = open;
+      tr.onkeydown = function (e) { if (e.key === "Enter") open(); };
+      COLS.forEach(function (c) {
+        var v = c[2](r.s);
+        tr.appendChild(el("td", c[3] ? "num" : null, c[3] ? c[3](v) : (v || "–")));
+      });
+      body.appendChild(tr);
+    });
+    plot.appendChild(el("p", "flw-note", "Click a column to sort, or a show to open it."));
+    plot.appendChild(t);
+  }
+
+  // Every show on one time axis, 0:00 = its Opening, so structure and pacing line up.
+  function drawCompareTimelines() {
+    var W = Math.max(640, plot.clientWidth), m = { l: 116, r: 16, t: 10, b: 28 };
+    var D = d3.max(SHOWS, function (s) { return s.maxDepth; }), lvH = 17, bandGap = 22;
+    var band = (D + 1) * lvH, maxT = d3.max(SHOWS, function (s) { return s.total; });
+    var order = SHOWS.map(function (s, i) { return i; }).sort(function (a, b) { return (SHOWS[b].date || "").localeCompare(SHOWS[a].date || ""); });
+    var H = m.t + order.length * (band + bandGap) + m.b;
+    var x = d3.scaleLinear().domain([0, maxT]).range([m.l, W - m.r]);
+    var svg = d3.select(plot).append("svg").attr("width", W).attr("height", H)
+      .attr("role", "img").attr("aria-label", "Timelines of all shows on a shared time axis");
+    var step = maxT <= 900 ? 60 : maxT <= 2100 ? 120 : 300, ticks = d3.range(0, maxT + 1, step);
+    svg.append("g").selectAll("line").data(ticks).join("line")
+      .attr("x1", x).attr("x2", x).attr("y1", m.t).attr("y2", H - m.b + 4).attr("stroke", GRID);
+    svg.append("g").selectAll("text").data(ticks).join("text")
+      .attr("x", x).attr("y", H - m.b + 18).attr("text-anchor", "middle").attr("font-size", 11)
+      .attr("fill", MUTED).style("font-variant-numeric", "tabular-nums").text(fmt);
+
+    order.forEach(function (si, k) {
+      var show = SHOWS[si], top = m.t + k * (band + bandGap) + bandGap / 2;
+      var y = function (lv) { return top + (D - lv) * lvH + lvH / 2; };
+      var g = svg.append("g");
+      g.append("line").attr("x1", m.l).attr("x2", x(show.total)).attr("y1", y(0) + lvH / 2).attr("y2", y(0) + lvH / 2).attr("stroke", AXIS);
+      g.append("line").attr("x1", x(show.total)).attr("x2", x(show.total)).attr("y1", top).attr("y2", top + band).attr("stroke", AXIS).attr("stroke-dasharray", "2 3");
+      var nm = g.append("text").attr("x", m.l - 12).attr("y", top + band / 2 - 2).attr("text-anchor", "end")
+        .attr("font-size", 12).attr("font-weight", 700).attr("fill", INK).text(fit(show.name, m.l - 20, 12, 700));
+      g.append("text").attr("x", m.l - 12).attr("y", top + band / 2 + 12).attr("text-anchor", "end")
+        .attr("font-size", 11).attr("fill", MUTED).text(show.date || "");
+      nm.append("title").text(show.name);
+      var sc = show.scenes;
+      g.append("g").attr("fill", "none").attr("stroke", AXIS).attr("stroke-width", 1.5).selectAll("path")
+        .data(d3.range(1, sc.length).map(function (j) { return [sc[j - 1], sc[j]]; })).join("path")
+        .attr("d", function (p) {
+          var xx = x(p[1].start), y1 = y(p[0].level), y2 = y(p[1].level);
+          return "M" + (xx - 4) + "," + y1 + "C" + (xx + 1) + "," + y1 + " " + (xx - 1) + "," + y2 + " " + (xx + 4) + "," + y2;
+        });
+      var bars = g.append("g").selectAll("rect").data(sc).join("rect")
+        .attr("x", function (d) { return x(d.start) + 0.5; }).attr("y", function (d) { return y(d.level) - 5; })
+        .attr("width", function (d) { return Math.max(1.5, x(d.start + d.len) - x(d.start) - 1); }).attr("height", 10)
+        .attr("rx", 2.5).attr("fill", colourOf);
+      var tagged = sc.filter(function (d) { return d.tag; });
+      var glyphs = g.append("g").selectAll("g").data(tagged).join("g")
+        .attr("transform", function (d) { return "translate(" + x(d.start) + "," + (y(sc[sc.indexOf(d) - 1].level) + y(d.level)) / 2 + ")"; });
+      glyphs.each(function (d) {
+        d3.select(this).selectAll("circle").data(d.tag === "double" ? [-2.5, 2.5] : [0]).join("circle")
+          .attr("cx", function (v) { return v; }).attr("r", 2.4).attr("fill", INK).attr("stroke", "#fff").attr("stroke-width", 1);
+      });
+      function focusRun(d) {
+        bars.attr("opacity", function (o) { return d == null || o.run === d.run ? 1 : 0.18; });
+        glyphs.attr("opacity", function (o) { return d == null || o.run === d.run ? 1 : 0.2; });
+      }
+      g.append("g").selectAll("rect").data(sc).join("rect").attr("class", "flw-hit")
+        .attr("x", function (d) { return x(d.start); }).attr("y", top)
+        .attr("width", function (d) { return Math.max(6, x(d.start + d.len) - x(d.start)); }).attr("height", band)
+        .attr("fill", "transparent").attr("tabindex", 0).attr("aria-label", function (d) { return show.name + ": " + d.name + ", " + fmt(d.len); })
+        .on("pointerenter focus", function (e, d) { focusRun(d); showTip(e, d, show); })
+        .on("pointermove", function (e, d) { showTip(e, d, show); })
+        .on("pointerleave blur", function () { focusRun(null); hideTip(); });
+    });
+  }
+
+  // One dot per scene, by length, a strip per show; a tick marks the average.
+  function drawCompareLengths() {
+    var W = Math.max(640, plot.clientWidth), m = { l: 116, r: 24, t: 10, b: 28 }, r = 5, gap = 2;
+    var rowsOf = SHOWS.map(function (s, i) { return { s: s, i: i, pts: s.scenes.filter(function (d) { return d.run != null; }) }; })
+      .sort(function (a, b) { return (b.s.date || "").localeCompare(a.s.date || ""); });
+    var maxLen = d3.max(rowsOf, function (o) { return d3.max(o.pts, function (d) { return d.len; }) || 0; }) || 1;
+    var x = d3.scaleLinear().domain([0, maxLen]).nice().range([m.l, W - m.r]);
+    // Dodge: stack dots that would overlap, alternating above and below the centre line.
+    var stacks = 1;
+    rowsOf.forEach(function (o) {
+      var placed = [];
+      o.pts.slice().sort(function (a, b) { return a.len - b.len; }).forEach(function (d) {
+        var px = x(d.len), k = 0, off;
+        for (;; k++) {
+          off = (k % 2 ? 1 : -1) * Math.ceil(k / 2) * (2 * r + gap);
+          if (!placed.some(function (p) { return Math.hypot(p.x - px, p.off - off) < 2 * r + gap; })) break;
+        }
+        placed.push({ x: px, off: off }); d.dx = px; d.off = off;
+        stacks = Math.max(stacks, Math.abs(off) / (2 * r + gap) * 2 + 1);
+      });
+    });
+    var band = Math.max(40, (Math.ceil(stacks) + 1) * (2 * r + gap)), H = m.t + rowsOf.length * band + m.b;
+    var svg = d3.select(plot).append("svg").attr("width", W).attr("height", H)
+      .attr("role", "img").attr("aria-label", "Scene lengths for every show");
+    var ticks = x.ticks(Math.max(4, Math.floor(W / 90)));
+    svg.append("g").selectAll("line").data(ticks).join("line")
+      .attr("x1", x).attr("x2", x).attr("y1", m.t).attr("y2", H - m.b + 4).attr("stroke", GRID);
+    svg.append("g").selectAll("text").data(ticks).join("text")
+      .attr("x", x).attr("y", H - m.b + 18).attr("text-anchor", "middle").attr("font-size", 11)
+      .attr("fill", MUTED).style("font-variant-numeric", "tabular-nums").text(fmt);
+    rowsOf.forEach(function (o, k) {
+      var cy = m.t + k * band + band / 2, g = svg.append("g");
+      g.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", cy).attr("y2", cy).attr("stroke", AXIS);
+      g.append("text").attr("x", m.l - 12).attr("y", cy - 2).attr("text-anchor", "end").attr("font-size", 12)
+        .attr("font-weight", 700).attr("fill", INK).text(fit(o.s.name, m.l - 20, 12, 700));
+      g.append("text").attr("x", m.l - 12).attr("y", cy + 12).attr("text-anchor", "end").attr("font-size", 11)
+        .attr("fill", MUTED).text(o.s.date || "");
+      g.append("line").attr("x1", x(o.s.stats.meanScene)).attr("x2", x(o.s.stats.meanScene))
+        .attr("y1", cy - band / 2 + 6).attr("y2", cy + band / 2 - 6).attr("stroke", INK).attr("stroke-width", 2)
+        .attr("stroke-dasharray", "3 3").append("title").text("Average scene " + fmt(o.s.stats.meanScene));
+      g.append("g").selectAll("circle").data(o.pts).join("circle").attr("class", "flw-hit")
+        .attr("cx", function (d) { return d.dx; }).attr("cy", function (d) { return cy + d.off; }).attr("r", r)
+        .attr("fill", colourOf).attr("stroke", "#fff").attr("stroke-width", 1).attr("tabindex", 0)
+        .attr("aria-label", function (d) { return o.s.name + ": " + d.name + ", " + fmt(d.len); })
+        .on("pointerenter focus", function (e, d) { showTip(e, d, o.s); })
+        .on("pointermove", function (e, d) { showTip(e, d, o.s); })
+        .on("pointerleave blur", hideTip);
+    });
+    plot.appendChild(el("p", "flw-note", "Each dot is a scene (after the Opening); dashed line = the show's average."));
+  }
+
+  // Key stats over show date, one small chart each.
+  var TRENDS = [
+    ["Show length", function (s) { return s.stats.total; }, fmt],
+    ["Average scene", function (s) { return s.stats.meanScene; }, fmt],
+    ["Time at base", function (s) { return s.stats.basePct; }, function (v) { return Math.round(v) + "%"; }],
+    ["Runs", function (s) { return s.stats.runs; }, String],
+    ["Deepest level", function (s) { return s.stats.maxDepth; }, String],
+    ["Tags per scene", function (s) { return s.stats.count ? (s.stats.single + s.stats.double) / s.stats.count : 0; }, function (v) { return v.toFixed(2); }]
+  ];
+  function drawCompareTrends() {
+    var dated = SHOWS.filter(function (s) { return s.date && !isNaN(new Date(s.date)); })
+      .sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
+    if (dated.length < 2) { plot.appendChild(el("p", "flw-note", "Trends need at least two dated shows.")); return; }
+    plot.appendChild(el("p", "flw-note", dated.length < 4 ? "Only " + dated.length + " shows so far; trends firm up as more are logged." : "One point per show, by show date."));
+    var grid = el("div", "flw-trends"); plot.appendChild(grid);
+    var W = Math.max(240, Math.min(420, (plot.clientWidth - 16) / (plot.clientWidth > 620 ? 2 : 1))), H = 150, m = { l: 38, r: 14, t: 10, b: 24 };
+    var x = d3.scaleTime().domain(d3.extent(dated, function (s) { return new Date(s.date); })).range([m.l, W - m.r]);
+    TRENDS.forEach(function (tr) {
+      var box = el("div"); box.appendChild(el("h4", null, tr[0])); grid.appendChild(box);
+      var vals = dated.map(tr[1]), lo = Math.min(0, d3.min(vals)), hi = d3.max(vals) || 1;
+      var y = d3.scaleLinear().domain([lo, hi]).nice().range([H - m.b, m.t]);
+      var svg = d3.select(box).append("svg").attr("width", W).attr("height", H).attr("role", "img").attr("aria-label", tr[0] + " by show date");
+      var yt = y.ticks(3);
+      svg.append("g").selectAll("line").data(yt).join("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y).attr("y2", y).attr("stroke", GRID);
+      svg.append("g").selectAll("text").data(yt).join("text").attr("x", m.l - 6).attr("y", function (v) { return y(v) + 4; })
+        .attr("text-anchor", "end").attr("font-size", 10).attr("fill", MUTED).text(function (v) { return tr[2](v); });
+      svg.append("g").selectAll("text").data(dated).join("text").attr("x", function (s) { return x(new Date(s.date)); })
+        .attr("y", H - 6).attr("text-anchor", dated.length > 1 ? "middle" : "start").attr("font-size", 10).attr("fill", MUTED)
+        .text(function (s) { return s.date.slice(5); });
+      svg.append("path").datum(dated).attr("fill", "none").attr("stroke", RUN[0]).attr("stroke-width", 2)
+        .attr("d", d3.line().x(function (s) { return x(new Date(s.date)); }).y(function (s) { return y(tr[1](s)); }));
+      svg.append("g").selectAll("circle").data(dated).join("circle").attr("class", "flw-hit")
+        .attr("cx", function (s) { return x(new Date(s.date)); }).attr("cy", function (s) { return y(tr[1](s)); })
+        .attr("r", 5).attr("fill", RUN[0]).attr("stroke", "#fff").attr("stroke-width", 2).attr("tabindex", 0)
+        .attr("aria-label", function (s) { return s.name + ", " + tr[0] + " " + tr[2](tr[1](s)); })
+        .on("pointerenter focus pointermove", function (e, s) {
+          placeTip(e, [el("div", "v", tr[2](tr[1](s))), el("div", "n", s.name), el("div", "m", tr[0] + " · " + s.date)]);
+        })
+        .on("pointerleave blur", hideTip);
+    });
+  }
+
   // ---- render --------------------------------------------------------------
   var lastW = 0;
   function render() {
@@ -434,7 +680,12 @@
     hideTip();
     plot.replaceChildren();
     lastW = plot.clientWidth;
-    if (state.view === "timeline") drawTimeline(show);
+    if (!show) {
+      if (state.cview === "table") drawCompareTable();
+      else if (state.cview === "timelines") drawCompareTimelines();
+      else if (state.cview === "lengths") drawCompareLengths();
+      else drawCompareTrends();
+    } else if (state.view === "timeline") drawTimeline(show);
     else if (state.view === "sunburst") drawSunburst(show);
     else drawTable(show);
   }

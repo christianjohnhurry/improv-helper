@@ -1,6 +1,6 @@
 """Flower: tools for building and exporting improv scene tables."""
 
-__version__ = "0.6.0"  # Semantic Versioning; keep in sync with VERSION and CHANGELOG.md
+__version__ = "0.7.0"  # Semantic Versioning; keep in sync with VERSION and CHANGELOG.md
 
 from flower.analysis import Run, SceneNode, ShowAnalysis, ShowStats, analyse, scene_lengths
 from flower.page import show_data, show_page, shows_page

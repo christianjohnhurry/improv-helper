@@ -25,9 +25,15 @@ def main(argv: list[str] | None = None) -> int:
                         help="directory of scene table JSON files (default: data)")
     parser.add_argument("-o", "--output", type=Path,
                         help="output HTML file (default: <data_dir>/scamps-shows.html)")
+    parser.add_argument("--view", choices=("timeline", "compare"), default="timeline",
+                        help="view open on load (default: timeline)")
     args = parser.parse_args(argv)
 
-    html, names = site_page(args.data_dir)
+    try:
+        html, names = site_page(args.data_dir, args.view)
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
     if not names:
         print(f"error: no scene tables found in {args.data_dir}", file=sys.stderr)
         return 1
