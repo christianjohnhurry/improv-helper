@@ -107,3 +107,41 @@ def test_site_builds_every_valid_table_and_skips_others(tmp_path, capsys):
 def test_site_with_no_tables(tmp_path, capsys):
     assert site_main([str(tmp_path)]) == 1
     assert "no scene tables" in capsys.readouterr().err
+
+
+def shifted(table, offset):
+    """The table with every timestamp moved later by offset seconds."""
+    return SceneTable(
+        metadata=table.metadata,
+        scenes=[Scene(s.description, s.timestamp + offset, s.level, s.tag_type) for s in table.scenes],
+    )
+
+
+def test_show_data_is_timed_from_the_opening():
+    table = SceneTable.load_json(FIXTURE)
+    late = show_data(shifted(table, 1500))
+    assert late["scenes"][0]["start"] == 0
+    assert {k: v for k, v in late.items() if k != "scenes"} == {k: v for k, v in show_data(table).items() if k != "scenes"}
+    assert [s["start"] for s in late["scenes"]] == [s["start"] for s in show_data(table)["scenes"]]
+    assert [s["video"] for s in late["scenes"]][0] == table.scenes[0].timestamp + 1500
+
+
+def test_show_data_scene_count_excludes_opening():
+    d = show_data(SceneTable.load_json(FIXTURE))
+    assert d["stats"]["count"] == len(d["scenes"]) - 1
+
+
+def test_compare_view_needs_two_shows():
+    one = show_data(SceneTable.load_json(FIXTURE))
+    with pytest.raises(ValueError, match="two or more"):
+        shows_page([one], "compare")
+    html = shows_page([one, {**one, "name": "Other", "date": "2026-10-01"}], "compare")
+    assert "var state = { show: 0, view: \"compare\"" in html
+
+
+def test_site_compare_view(tmp_path, capsys):
+    (tmp_path / "a.json").write_text(FIXTURE.read_text())
+    assert site_main([str(tmp_path), "--view", "compare"]) == 1
+    assert "two or more" in capsys.readouterr().err
+    (tmp_path / "b.json").write_text(FIXTURE.read_text())
+    assert site_main([str(tmp_path), "--view", "compare"]) == 0

@@ -15,7 +15,7 @@ from pathlib import Path
 from flower.analysis import analyse
 from flower.scene_table import SceneTable
 
-VIEWS = ("timeline", "sunburst", "table")
+VIEWS = ("timeline", "sunburst", "table", "compare")
 
 
 def pretty(slug: str) -> str:
@@ -65,6 +65,7 @@ def show_data(table: SceneTable, fallback_name: str = "") -> dict:
         runs=runs,
         stats=dict(
             total=s.total_time, runs=s.run_count, maxDepth=s.max_depth,
+            count=len(scenes) - 1,
             basePct=s.base_percent, meanScene=s.mean_scene_length,
             longestName=longest.scene.description if longest else "",
             longestLen=longest.length if longest else 0,
@@ -78,16 +79,20 @@ def shows_page(shows: Iterable[dict], view: str = "timeline") -> str:
 
     Args:
         shows: Show dicts from show_data.
-        view: The view open on load: 'timeline', 'sunburst' or 'table'.
+        view: The view open on load: 'timeline', 'sunburst', 'table', or 'compare'
+            (all shows side by side; each is timed from its Opening).
 
     Returns:
         A standalone HTML document (D3 is loaded from cdnjs).
 
     Raises:
-        ValueError: If the view is not one of VIEWS.
+        ValueError: If the view is not one of VIEWS. "compare" needs two or more shows.
     """
     if view not in VIEWS:
         raise ValueError(f"view must be one of {', '.join(VIEWS)}; got {view!r}")
+    shows = list(shows)
+    if view == "compare" and len(shows) < 2:
+        raise ValueError("the compare view needs two or more shows")
     ordered = sorted(shows, key=lambda s: s["date"] or "", reverse=True)
     template = resources.files("flower").joinpath("templates/shows_page.html").read_text("utf-8")
     data = json.dumps(ordered).replace("</", "<\\/")
@@ -99,13 +104,14 @@ def show_page(table: SceneTable, view: str = "timeline", fallback_name: str = ""
     return shows_page([show_data(table, fallback_name)], view)
 
 
-def site_page(data_dir: Path) -> tuple[str, list[str]]:
+def site_page(data_dir: Path, view: str = "timeline") -> tuple[str, list[str]]:
     """Render the multi-show page from every scene table JSON in a directory.
 
     Files that are not valid scene tables are skipped.
 
     Args:
         data_dir: Directory of scene table JSON files.
+        view: The view open on load (see shows_page).
 
     Returns:
         The HTML and the names of the shows included, newest first.
@@ -117,4 +123,4 @@ def site_page(data_dir: Path) -> tuple[str, list[str]]:
         except (OSError, ValueError, TypeError, KeyError):
             continue
     shows.sort(key=lambda s: s["date"] or "", reverse=True)
-    return shows_page(shows), [s["name"] for s in shows]
+    return shows_page(shows, view), [s["name"] for s in shows]
